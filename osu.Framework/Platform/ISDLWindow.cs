@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Drawing;
 using osu.Framework.Bindables;
 using osu.Framework.Input;
 using osuTK;
@@ -27,22 +26,17 @@ namespace osu.Framework.Platform
         event Action<Key> KeyUp;
         event Action<string> TextInput;
         event TextEditingDelegate TextEditing;
-        event Action<WindowState> WindowStateChanged;
 
         Bindable<CursorState> CursorStateBindable { get; }
-
-        Point Position { get; }
-        Size Size { get; }
-        float Scale { get; }
-        bool Resizable { get; set; }
 
         bool MouseAutoCapture { set; }
         bool RelativeMouseMode { get; set; }
         bool CapsLockPressed { get; }
+        bool KeyboardAttached { get; }
 
         void UpdateMousePosition(Vector2 position);
 
-        void StartTextInput(bool allowIme);
+        void StartTextInput(TextInputProperties properties);
         void StopTextInput();
         void SetTextInputRect(RectangleF rectangle);
         void ResetIme();

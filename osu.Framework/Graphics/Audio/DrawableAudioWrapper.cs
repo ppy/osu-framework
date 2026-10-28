@@ -104,6 +104,8 @@ namespace osu.Framework.Graphics.Audio
             IAggregateAudioAdjustment newAdjustments = null;
             IAudioMixer newMixer = null;
 
+            bool hasParent = Parent != null;
+
             while ((cursor = cursor.Parent) != null)
             {
                 if (newAdjustments == null && cursor is IAggregateAudioAdjustment candidateAdjustment)
@@ -131,10 +133,17 @@ namespace osu.Framework.Graphics.Audio
             if (parentMixer != newMixer)
                 OnMixerChanged(new ValueChangedEvent<IAudioMixer>(parentMixer, newMixer));
 
+            if (!hasParent)
+                OnParentLost();
+
             parentMixer = newMixer;
         }
 
         protected virtual void OnMixerChanged(ValueChangedEvent<IAudioMixer> mixer)
+        {
+        }
+
+        internal virtual void OnParentLost()
         {
         }
 
@@ -144,6 +153,9 @@ namespace osu.Framework.Graphics.Audio
 
             if (!disposeUnderlyingComponentOnDispose)
                 component?.UnbindAdjustments(adjustments);
+
+            // Running this as early as we can seems beneficial for the case a mixer is present.
+            refreshLayoutFromParent();
         }
 
         protected override void Dispose(bool isDisposing)

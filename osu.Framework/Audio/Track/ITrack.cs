@@ -54,7 +54,7 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Whether this track has finished playing back.
         /// </summary>
-        public bool HasCompleted { get; }
+        bool HasCompleted { get; }
 
         /// <summary>
         /// Restarts this track from the <see cref="Track.RestartPoint"/> while retaining adjustments.

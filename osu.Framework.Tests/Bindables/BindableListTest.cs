@@ -476,6 +476,17 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(b4.Count, Is.EqualTo(7));
         }
 
+        [Test]
+        public void TestAddHashSetWithCallback()
+        {
+            var b1 = new BindableList<int>();
+
+            b1.CollectionChanged += (_, _) => { };
+            b1.AddRange(new HashSet<int>([1, 2, 3, 4]));
+
+            Assert.That(b1.Count, Is.EqualTo(4));
+        }
+
         #endregion
 
         #region .Move(item)
@@ -962,7 +973,7 @@ namespace osu.Framework.Tests.Bindables
             for (int i = startIndex + removeCount; i < totalCount; i++)
                 remainingItems.Add("test" + i);
 
-            CollectionAssert.AreEqual(remainingItems, bindableStringList);
+            Assert.That(remainingItems, Is.EquivalentTo(bindableStringList));
         }
 
         [Test]
@@ -1193,6 +1204,17 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(triggeredArgs.OldStartingIndex, Is.EqualTo(0));
         }
 
+        [Test]
+        public void TestReplaceRangeHashSetWithCallback()
+        {
+            var b1 = new BindableList<int>([1]);
+
+            b1.CollectionChanged += (_, _) => { };
+            b1.ReplaceRange(0, 1, new HashSet<int>([1, 2, 3, 4]));
+
+            Assert.That(b1.Count, Is.EqualTo(4));
+        }
+
         #endregion
 
         #region .Clear()
@@ -1371,7 +1393,7 @@ namespace osu.Framework.Tests.Bindables
 
             bindableStringList.CopyTo(array, 0);
 
-            CollectionAssert.AreEquivalent(bindableStringList, array);
+            Assert.That(bindableStringList, Is.EquivalentTo(array));
         }
 
         #endregion
@@ -1504,7 +1526,7 @@ namespace osu.Framework.Tests.Bindables
 
             bindableStringList.Parse(strings, CultureInfo.InvariantCulture);
 
-            CollectionAssert.AreEquivalent(strings, bindableStringList);
+            Assert.That(strings, Is.EquivalentTo(bindableStringList));
         }
 
         [Test]

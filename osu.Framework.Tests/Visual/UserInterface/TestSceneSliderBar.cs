@@ -59,6 +59,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Size = new Vector2(200, 50),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
+                        FocusColour = Color4.OrangeRed,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -72,6 +73,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         RangePadding = 20,
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
+                        FocusColour = Color4.OrangeRed,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -85,6 +87,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Size = new Vector2(200, 10),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
+                        FocusColour = Color4.OrangeRed,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -97,6 +100,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Size = new Vector2(200, 10),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
+                        FocusColour = Color4.OrangeRed,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -109,6 +113,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             sliderBar.Current.Disabled = false;
             sliderBar.Current.Value = 0;
+            sliderBar.GetContainingFocusManager()!.ChangeFocus(null);
+            sliderBarWithNub.GetContainingFocusManager()!.ChangeFocus(null);
         });
 
         [Test]
@@ -122,6 +128,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 1f))); });
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(0);
+            AddAssert("Slider has no focus", () => !sliderBar.HasFocus);
         }
 
         [Test]
@@ -136,6 +143,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Drag Up", () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f))); });
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(0);
+            AddAssert("Slider has focus", () => sliderBar.HasFocus);
         }
 
         [Test]
@@ -160,6 +168,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.ReleaseKey(Key.Right);
             });
             checkValue(1);
+
+            AddStep("Click slider", () => InputManager.Click(MouseButton.Left));
+            checkValue(-5);
+
+            AddAssert("Slider has focus", () => sliderBar.HasFocus);
+
+            AddStep("move mouse outside", () =>
+            {
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(2f, 0.5f)));
+            });
+
+            AddStep("Press right arrow key", () =>
+            {
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+            });
+            checkValue(-4);
         }
 
         [TestCase(false)]
@@ -246,6 +271,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.4f, 1f))); });
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(-2);
+            AddAssert("Slider has focus", () => sliderBarWithNub.HasFocus);
         }
 
         [Test]
@@ -259,6 +285,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.75f, 1f))); });
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(3);
+            AddAssert("Slider has focus", () => sliderBarWithNub.HasFocus);
         }
 
         [Test]
@@ -270,6 +297,36 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(0);
+        }
+
+        [Test]
+        public void TestClickSecondButtonWhileRelativeDragging()
+        {
+            checkValue(0);
+
+            AddStep("Move Cursor", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.6f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.25f, 0.5f))); });
+            AddStep("Second Button Click", () => { InputManager.Click(MouseButton.Right); });
+            AddStep("Drag", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.3f, 0.5f))); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+
+            checkValue(-6);
+        }
+
+        [Test]
+        public void TestClickSecondButtonWhileAbsoluteDragging()
+        {
+            checkValue(0);
+
+            AddStep("Move Cursor", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.8f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.25f, 0.5f))); });
+            AddStep("Second Button Click", () => { InputManager.Click(MouseButton.Right); });
+            AddStep("Drag", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.3f, 0.5f))); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+
+            checkValue(-4);
         }
 
         private void checkValue(int expected) =>

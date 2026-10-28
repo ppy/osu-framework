@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Globalization;
 using osu.Framework.Platform;
 
 namespace osu.Framework
@@ -11,12 +13,20 @@ namespace osu.Framework
     public class HostOptions
     {
         /// <summary>
-        /// The IPC port to bind. This port should be between 1024 and 49151,
-        /// should be shared by all instances of a given osu!framework app,
-        /// but be distinct from IPC ports specified by other osu!framework apps.
+        /// Use <see cref="IPCPipeName"/> instead.
+        /// </summary>
+        [Obsolete("Use IPCPipeName instead.")] // can be removed 20250603.
+        public int? IPCPort
+        {
+            set => IPCPipeName = value?.ToString(CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        /// The IPC pipe name to bind. This should be shared by all instances of
+        /// an osu!framework app that want to perform inter-process communications.
         /// See <see cref="IIpcHost"/> for more details on usage.
         /// </summary>
-        public int? IPCPort { get; set; }
+        public string? IPCPipeName { get; set; }
 
         /// <summary>
         /// Whether this is a portable installation. Will cause all game files to be placed alongside the executable, rather than in the standard data directory.

@@ -31,12 +31,12 @@ namespace osu.Framework.Tests.Visual.Platform
         [Resolved]
         private FrameworkConfigManager config { get; set; }
 
-        private ISDLWindow sdlWindow;
+        private IWindow window;
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            sdlWindow = (ISDLWindow)host.Window;
+            window = host.Window;
             Children = new Drawable[]
             {
                 new FillFlowContainer
@@ -64,12 +64,12 @@ namespace osu.Framework.Tests.Visual.Platform
         }
 
         [SetUp]
-        public void SetUp() => Schedule(() => sdlWindow.Resizable = true);
+        public void SetUp() => Schedule(() => window.Resizable = true);
 
         [Test]
         public void TestToggleResizable()
         {
-            AddToggleStep("toggle resizable", state => sdlWindow.Resizable = state);
+            AddToggleStep("toggle resizable", state => window.Resizable = state);
         }
 
         [Test]
@@ -79,16 +79,16 @@ namespace osu.Framework.Tests.Visual.Platform
             const int min_height = 768;
 
             AddStep("reset window to valid size", () => setWindowSize(new Size(640, 480)));
-            AddStep("set minimum size above client size", () => sdlWindow.MinSize = new Size(min_width, min_height));
+            AddStep("set minimum size above client size", () => window.MinSize = new Size(min_width, min_height));
             assertWindowSize(new Size(min_width, min_height));
 
             AddStep("reset window to valid size", () => setWindowSize(new Size(1280, 960)));
             AddStep("set client size below minimum size", () => setWindowSize(new Size(640, 480)));
             assertWindowSize(new Size(min_width, min_height));
 
-            AddStep("overlapping size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MinSize = sdlWindow.MaxSize + new Size(1, 1)));
-            AddStep("negative size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MinSize = new Size(-1, -1)));
-            AddStep("reset minimum size", () => sdlWindow.MinSize = new Size(640, 480));
+            AddStep("overlapping size throws", () => Assert.Throws<InvalidOperationException>(() => window.MinSize = window.MaxSize + new Size(1, 1)));
+            AddStep("negative size throws", () => Assert.Throws<InvalidOperationException>(() => window.MinSize = new Size(-1, -1)));
+            AddStep("reset minimum size", () => window.MinSize = new Size(640, 480));
         }
 
         [Test]
@@ -98,27 +98,27 @@ namespace osu.Framework.Tests.Visual.Platform
             const int max_height = 768;
 
             AddStep("reset window to valid size", () => setWindowSize(new Size(1280, 960)));
-            AddStep("set maximum size below client size", () => sdlWindow.MaxSize = new Size(max_width, max_height));
+            AddStep("set maximum size below client size", () => window.MaxSize = new Size(max_width, max_height));
             assertWindowSize(new Size(max_width, max_height));
 
             // when the maximum window size changes to a value below the current size, the window implicitly enters maximised state.
             // when in maximised state, the "windowed size" config bindable is ineffective until the window goes back to normal.
-            AddStep("reset window to normal state", () => sdlWindow.WindowState = WindowState.Normal);
+            AddStep("reset window to normal state", () => window.WindowState = WindowState.Normal);
 
             AddStep("reset window to valid size", () => setWindowSize(new Size(640, 480)));
             AddStep("set client size above maximum size", () => setWindowSize(new Size(1280, 960)));
             assertWindowSize(new Size(max_width, max_height));
 
-            AddStep("overlapping size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MaxSize = sdlWindow.MinSize - new Size(1, 1)));
-            AddStep("negative size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MaxSize = new Size(-1, -1)));
-            AddStep("reset maximum size", () => sdlWindow.MaxSize = new Size(65536, 65536));
+            AddStep("overlapping size throws", () => Assert.Throws<InvalidOperationException>(() => window.MaxSize = window.MinSize - new Size(1, 1)));
+            AddStep("negative size throws", () => Assert.Throws<InvalidOperationException>(() => window.MaxSize = new Size(-1, -1)));
+            AddStep("reset maximum size", () => window.MaxSize = new Size(65536, 65536));
         }
 
         private void setWindowSize(Size size) => config.SetValue(FrameworkSetting.WindowedSize, size);
 
         private void assertWindowSize(Size size)
         {
-            AddAssert($"client size = {size.Width}x{size.Height} (with scale)", () => sdlWindow.ClientSize == (size * sdlWindow.Scale).ToSize());
+            AddAssert($"client size = {size.Width}x{size.Height} (with scale)", () => window.ClientSize == (size * window.Scale).ToSize());
             AddAssert($"size in config = {size.Width}x{size.Height}", () => config.Get<Size>(FrameworkSetting.WindowedSize) == size);
         }
     }

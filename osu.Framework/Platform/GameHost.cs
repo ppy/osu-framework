@@ -122,7 +122,7 @@ namespace osu.Framework.Platform
         public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
-        /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
+        /// Whether the on-screen keyboard covers a portion of the game window when presented to the user.
         /// </summary>
         public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
 
@@ -143,6 +143,7 @@ namespace osu.Framework.Platform
         protected IpcMessage OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
+        public virtual Task<IpcMessage> SendMessageWithResponseAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
         /// <summary>
         /// Requests that a file or folder be opened externally with an associated application, if available.
@@ -183,9 +184,6 @@ namespace osu.Framework.Platform
         /// </summary>
         protected abstract IWindow CreateWindow(GraphicsSurfaceType preferredSurface);
 
-        [Obsolete($"Resolve {nameof(Clipboard)} via DI.")] // can be removed 20231010
-        public Clipboard GetClipboard() => Dependencies.Get<Clipboard>();
-
         protected abstract Clipboard CreateClipboard();
 
         protected virtual ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new ReadableKeyCombinationProvider();
@@ -199,6 +197,13 @@ namespace osu.Framework.Platform
         /// Provides a sane starting point for user-accessible storage.
         /// </remarks>
         public virtual string InitialFileSelectorPath => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        /// <summary>
+        /// Creates a provider component for interacting with a system-provided file selector.
+        /// </summary>
+        /// <param name="allowedExtensions">The list of extensions allowed to be selected, or empty to allow all files.</param>
+        [CanBeNull]
+        public virtual ISystemFileSelector CreateSystemFileSelector(string[] allowedExtensions) => null;
 
         /// <summary>
         /// Retrieve a storage for the specified location.
@@ -241,8 +246,7 @@ namespace osu.Framework.Platform
             thread.IsActive.BindTo(IsActive);
             thread.UnhandledException = unhandledExceptionHandler;
 
-            if (thread.Monitor != null)
-                thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
+            thread.Monitor?.EnablePerformanceProfiling = PerformanceLogging.Value;
         }
 
         /// <summary>
@@ -290,8 +294,7 @@ namespace osu.Framework.Platform
             set
             {
                 maximumDrawHz = value;
-                if (DrawThread != null)
-                    DrawThread.ActiveHz = maximumDrawHz;
+                DrawThread?.ActiveHz = maximumDrawHz;
             }
         }
 
@@ -310,8 +313,7 @@ namespace osu.Framework.Platform
             set
             {
                 threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = maximumInactiveHz = value;
-                if (DrawThread != null)
-                    DrawThread.InactiveHz = maximumInactiveHz;
+                DrawThread?.InactiveHz = maximumInactiveHz;
             }
         }
 
@@ -513,7 +515,7 @@ namespace osu.Framework.Platform
                     Renderer.WaitUntilNextFrameReady();
 
                 didRenderFrame = false;
-                buffer = drawRoots.GetForRead();
+                buffer = drawRoots.GetForRead(IsActive.Value ? TripleBuffer<DrawNode>.DEFAULT_READ_TIMEOUT : 0);
             }
 
             if (buffer == null)
@@ -574,7 +576,7 @@ namespace osu.Framework.Platform
         {
             Renderer.SwapBuffers();
 
-            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync)
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync && RuntimeInfo.OS != RuntimeInfo.Platform.Android)
                 // without waiting (i.e. glFinish), vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
                 Renderer.WaitUntilIdle();
@@ -732,6 +734,7 @@ namespace osu.Framework.Platform
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
                 SetupForRun();
+                game.SetupLogging(Storage, CacheStorage);
 
                 populateInputHandlers();
 
@@ -915,7 +918,7 @@ namespace osu.Framework.Platform
                         case RendererType.OpenGL:
                             // Use the legacy GL renderer. This is basically guaranteed to support all platforms
                             // and performs better than the Veldrid-GL renderer due to reduction in allocs.
-                            SetupRendererAndWindow(new GLRenderer(), GraphicsSurfaceType.OpenGL);
+                            SetupRendererAndWindow(CreateGLRenderer(), GraphicsSurfaceType.OpenGL);
                             break;
 
                         case RendererType.Deferred_Metal:
@@ -1279,8 +1282,7 @@ namespace osu.Framework.Platform
             {
                 Threads.ForEach(t =>
                 {
-                    if (t.Monitor != null)
-                        t.Monitor.EnablePerformanceProfiling = logging.NewValue;
+                    t.Monitor?.EnablePerformanceProfiling = logging.NewValue;
                 });
                 DebugUtils.LogPerformanceIssues = logging.NewValue;
                 TypePerformanceMonitor.Active = logging.NewValue;
@@ -1301,11 +1303,6 @@ namespace osu.Framework.Platform
             }, true);
 
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
-
-#pragma warning disable CS0612 // Type or member is obsolete
-            if (Config.Get<RendererType>(FrameworkSetting.Renderer) == RendererType.OpenGLLegacy)
-                Config.SetValue(FrameworkSetting.Renderer, RendererType.OpenGL);
-#pragma warning restore CS0612 // Type or member is obsolete
         }
 
         /// <summary>

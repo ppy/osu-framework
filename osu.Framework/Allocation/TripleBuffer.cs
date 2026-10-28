@@ -15,11 +15,14 @@ namespace osu.Framework.Allocation
     internal class TripleBuffer<T>
         where T : class
     {
+        /// <summary>
+        /// The default amount of time (in milliseconds) to wait for a write to occur during <see cref="GetForRead"/>.
+        /// </summary>
+        public const int DEFAULT_READ_TIMEOUT = 100;
+
         private const int buffer_count = 3;
-        private const long read_timeout_milliseconds = 100;
 
         private readonly Buffer[] buffers = new Buffer[buffer_count];
-
         private readonly Stopwatch stopwatch = new Stopwatch();
 
         private int writeIndex;
@@ -32,6 +35,10 @@ namespace osu.Framework.Allocation
                 buffers[i] = new Buffer(i, finishUsage);
         }
 
+        /// <summary>
+        /// Retrieves a buffer to be written to.
+        /// </summary>
+        /// <returns>The buffer.</returns>
         public Buffer GetForWrite()
         {
             Buffer usage = buffers[writeIndex];
@@ -39,18 +46,25 @@ namespace osu.Framework.Allocation
             return usage;
         }
 
-        public Buffer? GetForRead()
+        /// <summary>
+        /// Attempts to retrieve a buffer to read.
+        /// </summary>
+        /// <param name="timeout">Amount of time (in milliseconds) to wait for a buffer to be written.</param>
+        /// <returns>An available buffer to be read, or <c>null</c> if no buffer has been written.</returns>
+        public Buffer? GetForRead(int timeout = DEFAULT_READ_TIMEOUT)
         {
             stopwatch.Restart();
 
-            do
+            while (true)
             {
                 flip(ref readIndex);
 
-                // This should really never happen, but prevents a potential infinite loop if the usage can never be retrieved.
-                if (stopwatch.ElapsedMilliseconds > read_timeout_milliseconds)
+                if (buffers[readIndex].LastUsage != UsageType.Read)
+                    break;
+
+                if (timeout == 0 || stopwatch.ElapsedMilliseconds > timeout)
                     return null;
-            } while (buffers[readIndex].LastUsage == UsageType.Read);
+            }
 
             Buffer usage = buffers[readIndex];
 

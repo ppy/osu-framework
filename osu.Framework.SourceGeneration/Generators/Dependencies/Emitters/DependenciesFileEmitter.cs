@@ -142,10 +142,8 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies.Emitters
                                 .WithBlock(
                                     SyntaxFactory.Block(
                                         Target.ResolvedMembers.Select(m => (IStatementEmitter)new ResolvedMemberEmitter(this, m))
-                                              .Concat(
-                                                  Target.DependencyLoaderMembers.Select(m => new BackgroundDependencyLoaderEmitter(this, m)))
-                                              .SelectMany(
-                                                  e => e.Emit())));
+                                              .Concat(Target.DependencyLoaderMembers.Select(m => new BackgroundDependencyLoaderEmitter(this, m)))
+                                              .SelectMany(e => e.Emit())));
         }
 
         private ExpressionSyntax emitCacheDependenciesDelegate()
@@ -172,8 +170,7 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies.Emitters
                                                   Target.CachedClasses.Select(m => new CachedClassEmitter(this, m)))
                                               .Concat(
                                                   Target.CachedInterfaces.Select(m => new CachedInterfaceEmitter(this, m)))
-                                              .SelectMany(
-                                                  e => e.Emit())
+                                              .SelectMany(e => e.Emit())
                                               .Prepend(createPrologue())
                                               .Append(createEpilogue())));
 

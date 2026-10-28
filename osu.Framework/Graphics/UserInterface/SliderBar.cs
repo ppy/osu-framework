@@ -87,8 +87,8 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (!currentNumberInstantaneous.HasDefinedRange)
                 {
-                    throw new InvalidOperationException($"A {nameof(SliderBar<T>)}'s {nameof(Current)} must have user-defined {nameof(BindableNumber<T>.MinValue)}"
-                                                        + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
+                    throw new InvalidOperationException($"A {nameof(SliderBar<>)}'s {nameof(Current)} must have user-defined {nameof(BindableNumber<>.MinValue)}"
+                                                        + $" and {nameof(BindableNumber<>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
                 }
 
                 return currentNumberInstantaneous.NormalizedValue;
@@ -119,6 +119,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
+            // Relative value at MouseDown shouldn't change until dragging ends.
+            if (IsDragged)
+                return base.OnMouseDown(e);
+
             if (ShouldHandleAsRelativeDrag(e))
             {
                 float min = float.CreateTruncating(currentNumberInstantaneous.MinValue);
@@ -166,18 +170,24 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
             }
 
+            GetContainingFocusManager()?.ChangeFocus(this);
             handleMouseInput(e);
             return true;
         }
 
-        protected override void OnDragEnd(DragEndEvent e) => Commit();
+        protected override void OnDragEnd(DragEndEvent e)
+        {
+            Commit();
+        }
+
+        public override bool AcceptsFocus => true;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (currentNumberInstantaneous.Disabled)
                 return false;
 
-            if (!IsHovered)
+            if (!IsHovered && !HasFocus)
                 return false;
 
             float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;

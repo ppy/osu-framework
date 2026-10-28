@@ -206,7 +206,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("text input not deactivated", () => textInput.DeactivationQueue.Count == 0);
             AddAssert("text input not activated again", () => textInput.ActivationQueue.Count == 0);
-            AddAssert("text input ensure activated", () => textInput.EnsureActivatedQueue.Dequeue() && textInput.EnsureActivatedQueue.Count == 0);
+            AddAssert("text input ensure activated", () => textInput.EnsureActivatedQueue.Dequeue() != default && textInput.EnsureActivatedQueue.Count == 0);
 
             AddStep("click deselection", () =>
             {
@@ -217,7 +217,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("text input not deactivated", () => textInput.DeactivationQueue.Count == 0);
             AddAssert("text input not activated again", () => textInput.ActivationQueue.Count == 0);
-            AddAssert("text input ensure activated", () => textInput.EnsureActivatedQueue.Dequeue() && textInput.EnsureActivatedQueue.Count == 0);
+            AddAssert("text input ensure activated", () => textInput.EnsureActivatedQueue.Dequeue() != default && textInput.EnsureActivatedQueue.Count == 0);
 
             AddStep("click-drag selection", () =>
             {
@@ -385,6 +385,122 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("input deactivated", () => textInput.DeactivationQueue.Dequeue() && textInput.DeactivationQueue.Count == 0);
         }
 
+        // Microsoft Korean IME
+        // When pressing letter keys, the IME is perpetually in composition mode. The IME leaves composition mode when you type a non-letter character.
+        // Let's assume the following mappings
+        // - "lt" -> "<"
+        // - "lte" -> "≤"
+        // - single letters map to themselves
+
+        [Test]
+        public void TestKoreanImeFinalizeByNonLetter()
+        {
+            AddStep("type l", () => textInput.TriggerImeComposition("l", 0, 1));
+            AddAssert(@"ime composition event for ""l"" raised", () => textBox.ImeCompositionQueue.Dequeue().Equals(new ImeCompositionEvent
+            {
+                NewComposition = "l",
+                AddedTextLength = 1,
+                RemovedTextLength = 0,
+                SelectionMoved = true
+            }));
+
+            AddStep("type t", () => textInput.TriggerImeComposition("<", 0, 1));
+            AddAssert(@"ime composition event for ""<"" raised", () => textBox.ImeCompositionQueue.Dequeue().Equals(new ImeCompositionEvent
+            {
+                NewComposition = "<",
+                AddedTextLength = 1,
+                RemovedTextLength = 1,
+                SelectionMoved = false
+            }));
+
+            AddStep("type e", () => textInput.TriggerImeComposition("≤", 0, 1));
+            AddAssert(@"ime composition event for ""≤"" raised", () => textBox.ImeCompositionQueue.Dequeue().Equals(new ImeCompositionEvent
+            {
+                NewComposition = "≤",
+                AddedTextLength = 1,
+                RemovedTextLength = 1,
+                SelectionMoved = false
+            }));
+
+            AddStep("type .", () =>
+            {
+                // SDL3 reports IME finalize by first signalling an empty composition and then a text event
+                textInput.TriggerImeComposition("", 0, 0);
+                textInput.Text("≤");
+                // after that, we get the actual key press
+                InputManager.PressKey(Key.Period);
+                textInput.Text(".");
+                InputManager.ReleaseKey(Key.Period);
+            });
+            AddAssert("empty ime composition event raised", () => textBox.ImeCompositionQueue.Dequeue().Equals(new ImeCompositionEvent
+            {
+                NewComposition = "",
+                AddedTextLength = 0,
+                RemovedTextLength = 1,
+                SelectionMoved = true
+            }));
+            AddAssert(@"text event for ""≤"" raised", () => textBox.UserConsumedTextQueue.Dequeue(), () => Is.EqualTo("≤"));
+            AddAssert(@"text event for ""."" raised", () => textBox.UserConsumedTextQueue.Dequeue(), () => Is.EqualTo("."));
+            AddAssert(@"added text is ""≤.""", () => textBox.Text, () => Is.EqualTo(default_text + "≤."));
+        }
+
+        [Test]
+        public void TestKoreanImeFinalizeByNewComposition()
+        {
+            AddStep("type l", () => textInput.TriggerImeComposition("l", 0, 1));
+            AddAssert(@"ime composition event for ""l"" raised", () => textBox.ImeCompositionQueue.Dequeue().Equals(new ImeCompositionEvent
+            {
+                NewComposition = "l",
+                AddedTextLength = 1,
+                RemovedTextLength = 0,
+                SelectionMoved = true
+            }));
+
+            AddStep("type t", () => textInput.TriggerImeComposition("<", 0, 1));
+            AddAssert(@"ime composition event for ""<"" raised", () => textBox.ImeCompositionQueue.Dequeue().Equals(new ImeCompositionEvent
+            {
+                NewComposition = "<",
+                AddedTextLength = 1,
+                RemovedTextLength = 1,
+                SelectionMoved = false
+            }));
+
+            AddStep("type e", () => textInput.TriggerImeComposition("≤", 0, 1));
+            AddAssert(@"ime composition event for ""≤"" raised", () => textBox.ImeCompositionQueue.Dequeue().Equals(new ImeCompositionEvent
+            {
+                NewComposition = "≤",
+                AddedTextLength = 1,
+                RemovedTextLength = 1,
+                SelectionMoved = false
+            }));
+
+            AddStep("type l", () =>
+            {
+                // SDL3 reports IME finalize by first signalling an empty composition and then a text event
+                textInput.TriggerImeComposition("", 0, 0);
+                textInput.Text("≤");
+                // after that, we get the new composition
+                textInput.TriggerImeComposition("l", 0, 1);
+            });
+            AddAssert("empty ime composition event raised", () => textBox.ImeCompositionQueue.Dequeue().Equals(new ImeCompositionEvent
+            {
+                NewComposition = "",
+                AddedTextLength = 0,
+                RemovedTextLength = 1,
+                SelectionMoved = true
+            }));
+            AddAssert(@"text event for ""≤"" raised", () => textBox.UserConsumedTextQueue.Dequeue(), () => Is.EqualTo("≤"));
+            AddAssert(@"ime composition event for ""l"" raised", () => textBox.ImeCompositionQueue.Dequeue().Equals(new ImeCompositionEvent
+            {
+                NewComposition = "l",
+                AddedTextLength = 1,
+                RemovedTextLength = 0,
+                SelectionMoved = true
+            }));
+            AddAssert(@"added text is ""≤l""", () => textBox.Text, () => Is.EqualTo(default_text + "≤l"));
+            AddAssert("ime is active", () => textInput.ImeActive, () => Is.True);
+        }
+
         [Test]
         public void TestLengthLimitTruncatesComposition()
         {
@@ -500,7 +616,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("add second textbox", () => textInputContainer.Add(secondTextBox = new EventQueuesTextBox
             {
-                ImeAllowed = allowIme,
+                InputProperties = new TextInputProperties(TextInputType.Text, allowIme),
                 Anchor = Anchor.CentreLeft,
                 Origin = Anchor.CentreLeft,
                 CommitOnFocusLost = true,
@@ -517,7 +633,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("text input not deactivated", () => textInput.DeactivationQueue.Count == 0);
             AddAssert("text input not activated again", () => textInput.ActivationQueue.Count == 0);
-            AddAssert($"text input ensure activated {(allowIme ? "with" : "without")} IME", () => textInput.EnsureActivatedQueue.Dequeue() == allowIme && textInput.EnsureActivatedQueue.Count == 0);
+            AddAssert($"text input ensure activated {(allowIme ? "with" : "without")} IME", () => textInput.EnsureActivatedQueue.Dequeue().AllowIme == allowIme && textInput.EnsureActivatedQueue.Count == 0);
 
             AddStep("commit text", () => InputManager.Key(Key.Enter));
             AddAssert("text input deactivated", () => textInput.DeactivationQueue.Dequeue());
@@ -574,10 +690,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public partial class EventQueuesTextBox : TestSceneTextBox.InsertableTextBox
         {
-            public bool ImeAllowed { get; set; } = true;
-
-            protected override bool AllowIme => ImeAllowed;
-
             public readonly Queue<bool> InputErrorQueue = new Queue<bool>();
             public readonly Queue<string> UserConsumedTextQueue = new Queue<string>();
             public readonly Queue<string> UserRemovedTextQueue = new Queue<string>();

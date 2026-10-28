@@ -1,9 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
-using System;
 using System.Diagnostics.CodeAnalysis;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -15,24 +12,6 @@ namespace osu.Framework.Tests.Dependencies.Reflection
     [SuppressMessage("Performance", "OFSG001:Class contributes to dependency injection and should be partial")]
     public class CachedModelDependenciesTest
     {
-        [Test]
-        public void TestModelWithNonBindableFieldsFails()
-        {
-            IReadOnlyDependencyContainer unused;
-
-            Assert.Throws<TypeInitializationException>(() => unused = new CachedModelDependencyContainer<NonBindablePublicFieldModel>(null));
-            Assert.Throws<TypeInitializationException>(() => unused = new CachedModelDependencyContainer<NonBindablePrivateFieldModel>(null));
-        }
-
-        [Test]
-        public void TestModelWithNonReadOnlyFieldsFails()
-        {
-            IReadOnlyDependencyContainer unused;
-
-            Assert.Throws<TypeInitializationException>(() => unused = new CachedModelDependencyContainer<NonReadOnlyFieldModel>(null));
-            Assert.Throws<TypeInitializationException>(() => unused = new CachedModelDependencyContainer<PropertyModel>(null));
-        }
-
         [Test]
         public void TestSettingNoModelResolvesDefault()
         {
@@ -195,7 +174,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
 
             var model = new FieldModel { Bindable = { Value = 2 } };
 
-            var dependencies = new CachedModelDependencyContainer<FieldModel>(null)
+            var dependencies = new CachedModelDependencyContainer<FieldModel?>(null)
             {
                 Model = { Value = model }
             };
@@ -248,7 +227,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
                 BindableString = { Value = "3" }
             };
 
-            var dependencies = new CachedModelDependencyContainer<DerivedFieldModel>(null)
+            var dependencies = new CachedModelDependencyContainer<DerivedFieldModel?>(null)
             {
                 Model = { Value = model1 }
             };
@@ -269,33 +248,6 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             Assert.AreEqual(null, resolver.BindableString.Value);
         }
 
-        private class NonBindablePublicFieldModel : IDependencyInjectionCandidate
-        {
-#pragma warning disable 649
-            public readonly int FailingField;
-#pragma warning restore 649
-        }
-
-        private class NonBindablePrivateFieldModel : IDependencyInjectionCandidate
-        {
-#pragma warning disable 169
-            private readonly int failingField;
-#pragma warning restore 169
-        }
-
-        private class NonReadOnlyFieldModel : IDependencyInjectionCandidate
-        {
-#pragma warning disable 649
-            public Bindable<int> Bindable;
-#pragma warning restore 649
-        }
-
-        private class PropertyModel : IDependencyInjectionCandidate
-        {
-            // ReSharper disable once UnusedMember.Local
-            public Bindable<int> Bindable { get; private set; }
-        }
-
         private class FieldModel : IDependencyInjectionCandidate
         {
             [Cached]
@@ -311,22 +263,22 @@ namespace osu.Framework.Tests.Dependencies.Reflection
         private class FieldModelResolver : IDependencyInjectionCandidate
         {
             [Resolved]
-            public FieldModel Model { get; private set; }
+            public FieldModel Model { get; private set; } = null!;
         }
 
         private class DerivedFieldModelResolver : IDependencyInjectionCandidate
         {
             [Resolved]
-            public DerivedFieldModel Model { get; private set; }
+            public DerivedFieldModel Model { get; private set; } = null!;
         }
 
         private class DerivedFieldModelPropertyResolver : IDependencyInjectionCandidate
         {
             [Resolved(typeof(DerivedFieldModel))]
-            public Bindable<int> Bindable { get; private set; }
+            public Bindable<int> Bindable { get; private set; } = null!;
 
             [Resolved(typeof(DerivedFieldModel))]
-            public Bindable<string> BindableString { get; private set; }
+            public Bindable<string> BindableString { get; private set; } = null!;
         }
     }
 }

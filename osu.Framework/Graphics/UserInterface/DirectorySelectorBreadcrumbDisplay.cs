@@ -10,6 +10,7 @@ using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Localisation;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -25,7 +26,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Create a directory item in the breadcrumb trail.
         /// </summary>
-        protected abstract DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
+        protected abstract DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, LocalisableString? displayName = null);
 
         /// <summary>
         /// Create the root directory item in the breadcrumb trail.

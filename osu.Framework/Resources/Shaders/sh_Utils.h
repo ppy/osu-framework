@@ -28,4 +28,19 @@ vec4 hsv2rgb(vec4 c)
     return vec4(c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y), c.w);
 }
 
+// decodes 24-bit float from 4 8-bit floats (https://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/)
+highp float decodeFloat(highp vec4 frameBuffer)
+{
+    return dot(frameBuffer, vec4(1.0, 1/255.0, 1/65025.0, 1/16581375.0));
+}
+
+// encodes 24-bit [0, 1) float to 4 8-bit floats (https://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/)
+lowp vec4 encodeFloat(highp float value)
+{
+    highp vec4 enc = value * vec4(1.0, 255.0, 65025.0, 16581375.0);
+    enc = fract(enc);
+    enc -= enc.yzww * vec4(1.0/255.0, 1.0/255.0, 1.0/255.0, 0.0);
+    return enc;
+}
+
 #endif

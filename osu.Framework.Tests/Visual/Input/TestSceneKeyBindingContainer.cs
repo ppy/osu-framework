@@ -65,8 +65,8 @@ namespace osu.Framework.Tests.Visual.Input
                 {
                     Child = new TestKeyBindingReceptor
                     {
-                        Pressed = a => pressedActions.Add(a),
-                        Released = a => releasedActions.Add(a)
+                        Pressed = pressedActions.Add,
+                        Released = releasedActions.Add
                     }
                 };
             });
@@ -99,8 +99,8 @@ namespace osu.Framework.Tests.Visual.Input
                 {
                     Child = new TestKeyBindingReceptor
                     {
-                        Pressed = a => pressedActions.Add(a),
-                        Released = a => releasedActions.Add(a)
+                        Pressed = pressedActions.Add,
+                        Released = releasedActions.Add
                     }
                 };
             });
@@ -135,8 +135,8 @@ namespace osu.Framework.Tests.Visual.Input
                     {
                         Child = new TestKeyBindingReceptor
                         {
-                            Pressed = a => pressedActions.Add(a),
-                            Released = a => releasedActions.Add(a)
+                            Pressed = pressedActions.Add,
+                            Released = releasedActions.Add
                         },
                     }
                 };
@@ -178,8 +178,8 @@ namespace osu.Framework.Tests.Visual.Input
                         },
                         new TestKeyBindingReceptor
                         {
-                            Pressed = a => pressedActions.Add(a),
-                            Released = a => releasedActions.Add(a)
+                            Pressed = pressedActions.Add,
+                            Released = releasedActions.Add
                         }
                     }
                 };
@@ -339,9 +339,9 @@ namespace osu.Framework.Tests.Visual.Input
                 {
                     Child = new TestKeyBindingReceptor
                     {
-                        Pressed = a => pressedReceived = a == TestAction.ActionAB,
-                        Repeated = a => repeatedReceived = a == TestAction.ActionAB,
-                        Released = a => releasedReceived = a == TestAction.ActionAB,
+                        Pressed = a => pressedReceived = a == TestAction.ActionAb,
+                        Repeated = a => repeatedReceived = a == TestAction.ActionAb,
+                        Released = a => releasedReceived = a == TestAction.ActionAb,
                     }
                 };
             });
@@ -367,6 +367,41 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("no repeat received", () => !repeatedReceived);
 
             AddStep("release B", () => InputManager.ReleaseKey(Key.B));
+        }
+
+        [Test]
+        public void TestHeldNonModifierKeyDoesNotRetriggerAfterModifierRelease()
+        {
+            List<TestAction> pressedActions = new List<TestAction>();
+
+            AddStep("add container", () =>
+            {
+                pressedActions.Clear();
+                Child = new TestKeyBindingContainer(matchingMode: KeyCombinationMatchingMode.Modifiers)
+                {
+                    Child = new TestKeyBindingReceptor
+                    {
+                        Pressed = pressedActions.Add,
+                    }
+                };
+            });
+
+            AddStep("press ctrl+A", () =>
+            {
+                InputManager.PressKey(Key.LControl);
+                InputManager.PressKey(Key.A);
+            });
+
+            AddAssert("ActionControlA triggered", () => pressedActions.Contains(TestAction.ActionControlA), () => Is.True);
+
+            AddStep("release ctrl", () => InputManager.ReleaseKey(Key.LControl));
+            AddAssert("ActionA never triggered", () => pressedActions.Contains(TestAction.ActionA), () => Is.False);
+
+            AddStep("press enter", () => InputManager.PressKey(Key.Enter));
+            AddAssert("ActionA never triggered", () => pressedActions.Contains(TestAction.ActionA), () => Is.False);
+
+            AddStep("release A", () => InputManager.ReleaseKey(Key.A));
+            AddStep("release enter", () => InputManager.ReleaseKey(Key.Enter));
         }
 
         [Test]
@@ -438,8 +473,8 @@ namespace osu.Framework.Tests.Visual.Input
                 {
                     Child = receptor = new TestKeyBindingReceptor
                     {
-                        Pressed = a => pressedActions.Add(a),
-                        Released = a => releasedActions.Add(a)
+                        Pressed = pressedActions.Add,
+                        Released = releasedActions.Add
                     }
                 };
             });
@@ -491,8 +526,9 @@ namespace osu.Framework.Tests.Visual.Input
 
             public Func<TestAction, bool>? Pressed;
 
-            public TestKeyBindingContainer(bool prioritised = false, SimultaneousBindingMode mode = SimultaneousBindingMode.None)
-                : base(mode)
+            public TestKeyBindingContainer(bool prioritised = false, SimultaneousBindingMode mode = SimultaneousBindingMode.None,
+                                           KeyCombinationMatchingMode matchingMode = KeyCombinationMatchingMode.Any)
+                : base(mode, matchingMode)
             {
                 Prioritised = prioritised;
             }
@@ -500,7 +536,8 @@ namespace osu.Framework.Tests.Visual.Input
             public override IEnumerable<IKeyBinding> DefaultKeyBindings => new IKeyBinding[]
             {
                 new KeyBinding(InputKey.A, TestAction.ActionA),
-                new KeyBinding(new KeyCombination(InputKey.A, InputKey.B), TestAction.ActionAB),
+                new KeyBinding(new KeyCombination(InputKey.A, InputKey.B), TestAction.ActionAb),
+                new KeyBinding(new KeyCombination(InputKey.Control, InputKey.A), TestAction.ActionControlA),
                 new KeyBinding(InputKey.Enter, TestAction.ActionEnter),
                 new KeyBinding(InputKey.Control, TestAction.ActionControl),
                 new KeyBinding(InputKey.ExtraMouseButton4, TestAction.ActionMouse4),
@@ -529,7 +566,8 @@ namespace osu.Framework.Tests.Visual.Input
         private enum TestAction
         {
             ActionA,
-            ActionAB,
+            ActionAb,
+            ActionControlA,
             ActionEnter,
             ActionControl,
             ActionMouse4,

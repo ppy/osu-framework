@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Primitives
             Y = y;
         }
 
-        public static Vector2I Zero { get; } = new Vector2I();
+        public static Vector2I Zero { get; }
 
         public static Vector2I One { get; } = new Vector2I(1);
 

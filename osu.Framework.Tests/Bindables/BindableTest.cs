@@ -102,7 +102,7 @@ namespace osu.Framework.Tests.Bindables
             Debug.Assert(bindable != null);
 
             ((IParseable)bindable).Parse(input, CultureInfo.InvariantCulture);
-            object value = bindable.GetType().GetProperty(nameof(Bindable<object>.Value), BindingFlags.Public | BindingFlags.Instance)?.GetValue(bindable);
+            object value = bindable.GetType().GetProperty(nameof(Bindable<>.Value), BindingFlags.Public | BindingFlags.Instance)?.GetValue(bindable);
 
             Assert.That(value, Is.EqualTo(output));
         }

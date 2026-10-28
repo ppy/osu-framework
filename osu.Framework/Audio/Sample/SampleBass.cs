@@ -11,6 +11,8 @@ namespace osu.Framework.Audio.Sample
 
         public override bool IsLoaded => factory.IsLoaded;
 
+        public override double Length => factory.Length;
+
         private readonly SampleBassFactory factory;
         private readonly BassAudioMixer mixer;
 

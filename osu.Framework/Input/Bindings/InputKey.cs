@@ -683,6 +683,8 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The secondary backslash key.
         /// </summary>
+        // todo: revisit when we have a way to exclude enum members from naming rules
+        // ReSharper disable once InconsistentNaming
         NonUSBackSlash = 130,
 
         /// <summary>

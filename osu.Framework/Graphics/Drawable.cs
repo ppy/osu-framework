@@ -22,6 +22,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -105,7 +106,7 @@ namespace osu.Framework.Graphics
             OnDispose?.Invoke();
             OnDispose = null;
 
-            renderer?.ScheduleDisposal(d =>
+            renderer?.ScheduleDisposal(static d =>
             {
                 for (int i = 0; i < d.drawNodes.Length; i++)
                     d.drawNodes[i]?.Dispose();
@@ -433,7 +434,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// A lock exclusively used for initial acquisition/construction of the <see cref="Scheduler"/>.
         /// </summary>
-        private static readonly object scheduler_acquisition_lock = new object();
+        private static readonly Lock scheduler_acquisition_lock = new Lock();
 
         private volatile Scheduler scheduler;
 
@@ -2709,6 +2710,8 @@ namespace osu.Framework.Graphics
     /// x and y counterparts can be accessed using bitwise flags.
     /// </summary>
     [Flags]
+    // todo: revisit when we have a way to exclude enum members from naming rules
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum Anchor
     {
         TopLeft = y0 | x0,

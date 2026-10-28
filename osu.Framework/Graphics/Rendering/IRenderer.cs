@@ -24,25 +24,31 @@ namespace osu.Framework.Graphics.Rendering
         /// Maximum number of <see cref="DrawNode"/>s a <see cref="Drawable"/> can draw with.
         /// This is a carefully-chosen number to enable the update and draw threads to work concurrently without causing unnecessary load.
         /// </summary>
-        public const int MAX_DRAW_NODES = 3;
+        const int MAX_DRAW_NODES = 3;
 
-        public const int MAX_MIPMAP_LEVELS = 3;
+        /// <summary>
+        /// Maximum number of frames that can be queued up in GPU command buffers. Not authoritative, but a safe value to ensure we dispose
+        /// of resources after enough frames have passed to ensure the GPU is no longer using them.
+        /// </summary>
+        const int MAX_GPU_QUEUED_FRAMES = 4;
 
-        public const int VERTICES_PER_TRIANGLE = 4;
+        const int MAX_MIPMAP_LEVELS = 3;
 
-        public const int VERTICES_PER_QUAD = 4;
+        const int VERTICES_PER_TRIANGLE = 4;
 
-        public const int INDICES_PER_QUAD = VERTICES_PER_QUAD + 2;
+        const int VERTICES_PER_QUAD = 4;
+
+        const int INDICES_PER_QUAD = VERTICES_PER_QUAD + 2;
 
         /// <summary>
         /// Maximum number of vertices in a linear vertex buffer.
         /// </summary>
-        public const int MAX_VERTICES = ushort.MaxValue;
+        const int MAX_VERTICES = ushort.MaxValue;
 
         /// <summary>
         /// Maximum number of quads in a quad vertex buffer.
         /// </summary>
-        public const int MAX_QUADS = ushort.MaxValue / INDICES_PER_QUAD;
+        const int MAX_QUADS = ushort.MaxValue / INDICES_PER_QUAD;
 
         /// <summary>
         /// Enables or disables vertical sync.
@@ -339,16 +345,23 @@ namespace osu.Framework.Graphics.Rendering
         void ScheduleExpensiveOperation(ScheduledDelegate operation);
 
         /// <summary>
-        /// Schedules a disposal action to be run on the next frame.
+        /// Schedules a new disposal action to be executed at a later point in time.
+        /// This method can be called concurrently from multiple threads.
+        /// By default the disposal will run <see cref="IRenderer.MAX_GPU_QUEUED_FRAMES"/> frames after enqueueing.
         /// </summary>
-        /// <param name="disposalAction">The disposal action.</param>
-        /// <param name="target">The target to be disposed.</param>
+        /// <param name="disposalAction">The disposal action to be executed.</param>
+        /// <param name="target">The target.</param>
         void ScheduleDisposal<T>(Action<T> disposalAction, T target);
 
         /// <summary>
         /// Returns an image containing the current content of the backbuffer, i.e. takes a screenshot.
         /// </summary>
         protected internal Image<Rgba32> TakeScreenshot();
+
+        /// <summary>
+        /// Returns an image containing the content of a framebuffer.
+        /// </summary>
+        Image<Rgba32>? ExtractFrameBufferData(IFrameBuffer frameBuffer);
 
         /// <summary>
         /// Creates a new <see cref="IShaderPart"/>.
@@ -371,10 +384,11 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Creates a new <see cref="IFrameBuffer"/>.
         /// </summary>
+        /// <param name="textureFormat">The texture pixel format.</param>
         /// <param name="renderBufferFormats">Any render buffer formats.</param>
         /// <param name="filteringMode">The texture filtering mode.</param>
         /// <returns>The <see cref="IFrameBuffer"/>.</returns>
-        IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
+        IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
 
         /// <summary>
         /// Creates a new <see cref="Texture"/>.

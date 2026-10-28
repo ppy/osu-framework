@@ -6,6 +6,7 @@
 using System.IO;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -20,7 +21,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override DirectorySelectorDirectory CreateRootDirectoryItem() => new BreadcrumbDisplayComputer();
 
-        protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BreadcrumbDisplayDirectory(directory, displayName);
+        protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, LocalisableString? displayName = null) => new BreadcrumbDisplayDirectory(directory, displayName);
 
         protected partial class BreadcrumbDisplayComputer : BreadcrumbDisplayDirectory
         {
@@ -36,7 +37,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             protected override IconUsage? Icon => Directory.Name.Contains(Path.DirectorySeparatorChar) ? base.Icon : null;
 
-            public BreadcrumbDisplayDirectory(DirectoryInfo directory, string displayName = null)
+            public BreadcrumbDisplayDirectory(DirectoryInfo directory, LocalisableString? displayName = null)
                 : base(directory, displayName)
             {
             }

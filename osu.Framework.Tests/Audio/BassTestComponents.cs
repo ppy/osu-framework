@@ -40,6 +40,8 @@ namespace osu.Framework.Tests.Audio
             Add(TrackStore, SampleStore);
         }
 
+        public void UpdateDevice() => allComponents.UpdateDevice(-1);
+
         public void Init()
         {
             AudioThread.PreloadBass();

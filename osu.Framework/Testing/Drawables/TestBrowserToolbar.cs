@@ -41,6 +41,7 @@ namespace osu.Framework.Testing.Drawables
                     {
                         new Dimension(GridSizeMode.AutoSize),
                         new Dimension(),
+                        new Dimension(maxSize: 300),
                         new Dimension(GridSizeMode.AutoSize),
                         new Dimension(GridSizeMode.AutoSize),
                     },
@@ -50,6 +51,7 @@ namespace osu.Framework.Testing.Drawables
                         {
                             new ToolbarRunAllStepsSection { RelativeSizeAxes = Axes.Y },
                             new ToolbarRateSection { RelativeSizeAxes = Axes.Both },
+                            new ToolbarVolumeSection { RelativeSizeAxes = Axes.Both },
                             new Container
                             {
                                 RelativeSizeAxes = Axes.Y,

@@ -5,6 +5,8 @@
 partial class PartialClass : global::osu.Framework.Input.ISourceGeneratedHandleInputCache
 {
     global::System.Type global::osu.Framework.Input.ISourceGeneratedHandleInputCache.KnownType => typeof(global::PartialClass);
+
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsPositionalInput => true;
+
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsNonPositionalInput => true;
 }

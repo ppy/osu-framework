@@ -3,16 +3,18 @@
 
 #nullable disable
 
-using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
 using osu.Framework.Timing;
+using osuTK;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
@@ -32,6 +34,9 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Resolved]
         private FrameworkConfigManager config { get; set; }
 
+        [Resolved]
+        private TextureStore textures { get; set; }
+
         private static readonly string[] file_formats =
         {
             "h264.mp4",
@@ -48,8 +53,6 @@ namespace osu.Framework.Tests.Visual.Sprites
             "vp8.webm",
             "vp9.webm",
         };
-
-        private static string[][] videoFormatTestCaseSource => video_formats.Select(format => new[] { format }).ToArray();
 
         [BackgroundDependencyLoader]
         private void load(Game game)
@@ -173,7 +176,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("decoding ran", () => didDecode);
         }
 
-        [TestCaseSource(nameof(videoFormatTestCaseSource))]
+        [TestCaseSource(nameof(video_formats))]
         public void TestJumpForward(string videoFile)
         {
             loadNewVideo(videoFile);
@@ -182,7 +185,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Video seeked", () => video.CurrentFrameTime >= 10000);
         }
 
-        [TestCaseSource(nameof(videoFormatTestCaseSource))]
+        [TestCaseSource(nameof(video_formats))]
         public void TestJumpBack(string videoFile)
         {
             loadNewVideo(videoFile);
@@ -193,7 +196,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Video seeked", () => video.CurrentFrameTime < 30000);
         }
 
-        [TestCaseSource(nameof(videoFormatTestCaseSource))]
+        [TestCaseSource(nameof(video_formats))]
         public void TestJumpBackAfterEndOfPlayback(string videoFile)
         {
             loadNewVideo(videoFile);
@@ -239,6 +242,57 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddToggleStep("Toggle rounding", v => video.Rounded = v);
         }
 
+        [Test]
+        public void TestUnspecifiedColorspace()
+        {
+            AddStep("Reset clock", () =>
+            {
+                clock.CurrentTime = 0;
+                didDecode = false;
+            });
+            AddStep("load videos", () =>
+            {
+                videoContainer.Child = new FillFlowContainer
+                {
+                    Scale = new Vector2(0.75f),
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    AutoSizeAxes = Axes.Both,
+                    Direction = FillDirection.Horizontal,
+                    Children = new[]
+                    {
+                        new FillFlowContainer
+                        {
+                            AutoSizeAxes = Axes.Both,
+                            Direction = FillDirection.Vertical,
+                            Children = new[]
+                            {
+                                new SpriteText { Text = "SDTV / Rec. 601" },
+                                new TestVideo(videoStore.GetStream("h264.mp4")),
+                                Empty().With(d => d.Height = 10),
+                                new Sprite { Texture = textures.Get("h264-screenshot.png", WrapMode.ClampToEdge, WrapMode.ClampToEdge), Scale = new Vector2(2f) },
+                                new SpriteText { Text = "Expected" },
+                            }
+                        },
+                        new FillFlowContainer
+                        {
+                            AutoSizeAxes = Axes.Both,
+                            Direction = FillDirection.Vertical,
+                            Children = new[]
+                            {
+                                new SpriteText { Text = "HDTV / Rec. 709" },
+                                new TestVideo(videoStore.GetStream("h264-hd.mp4")) { Scale = new Vector2(270f / 576f) },
+                                Empty().With(d => d.Height = 10),
+                                new Sprite { Texture = textures.Get("h264-hd-screenshot.png", WrapMode.ClampToEdge, WrapMode.ClampToEdge), Scale = new Vector2(270f / 576f * 2f) },
+                                new SpriteText { Text = "Expected" },
+                            }
+                        },
+                    },
+                };
+            });
+            AddStep("Reset clock", () => clock.CurrentTime = 0);
+        }
+
         private int currentSecond;
         private int fps;
         private int lastFramesProcessed;
@@ -251,8 +305,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             realtimeClock.ProcessFrame();
 
-            if (clock != null)
-                clock.CurrentTime += realtimeClock.ElapsedFrameTime;
+            clock?.CurrentTime += realtimeClock.ElapsedFrameTime;
 
             if (video != null)
             {
@@ -265,15 +318,12 @@ namespace osu.Framework.Tests.Visual.Sprites
                     lastFramesProcessed = video.FramesProcessed;
                 }
 
-                if (timeText != null)
-                {
-                    timeText.Text = $"aim time: {video.PlaybackPosition:N2}\n"
-                                    + $"video time: {video.CurrentFrameTime:N2}\n"
-                                    + $"duration: {video.Duration:N2}\n"
-                                    + $"buffered {video.AvailableFrames}\n"
-                                    + $"FPS: {fps}\n"
-                                    + $"State: {video.State}";
-                }
+                timeText?.Text = $"aim time: {video.PlaybackPosition:N2}\n"
+                                 + $"video time: {video.CurrentFrameTime:N2}\n"
+                                 + $"duration: {video.Duration:N2}\n"
+                                 + $"buffered {video.AvailableFrames}\n"
+                                 + $"FPS: {fps}\n"
+                                 + $"State: {video.State}";
 
                 didDecode |= video.State == VideoDecoder.DecoderState.Running;
             }

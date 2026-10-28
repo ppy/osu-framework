@@ -11,10 +11,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
-using SDL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.PixelFormats;
 using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL3
@@ -41,15 +42,15 @@ namespace osu.Framework.Platform.SDL3
         // SDL cannot differentiate between string.Empty and no text (eg. empty clipboard or an image)
         // doesn't matter as text editors don't really allow copying empty strings.
         // assume that empty text means no text.
-        public override string? GetText() => SDL_HasClipboardText() == SDL_bool.SDL_TRUE ? SDL_GetClipboardText() : null;
+        public override string? GetText() => SDL_HasClipboardText() ? SDL_GetClipboardText() : null;
 
-        public override void SetText(string text) => SDL_SetClipboardText(text);
+        public override void SetText(string text) => SDL_SetClipboardText(text).LogErrorIfFailed();
 
         public override Image<TPixel>? GetImage<TPixel>()
         {
             foreach (string mimeType in supportedImageMimeTypes)
             {
-                if (tryGetData(mimeType, Image.Load<TPixel>, out var image))
+                if (tryGetData<TPixel>(mimeType, out var image))
                 {
                     Logger.Log($"Decoded {mimeType} from clipboard.");
                     return image;
@@ -78,15 +79,9 @@ namespace osu.Framework.Platform.SDL3
             return trySetData(imageFormat.DefaultMimeType, () => memory);
         }
 
-        /// <summary>
-        /// Decodes data from a native memory span. Return null or throw an exception if the data couldn't be decoded.
-        /// </summary>
-        /// <typeparam name="T">Type of decoded data.</typeparam>
-        private delegate T? SpanDecoder<out T>(ReadOnlySpan<byte> span);
-
-        private static unsafe bool tryGetData<T>(string mimeType, SpanDecoder<T> decoder, out T? data)
+        private static unsafe bool tryGetData<TPixel>(string mimeType, out Image<TPixel>? data) where TPixel : unmanaged, IPixel<TPixel>
         {
-            if (SDL_HasClipboardData(mimeType) == SDL_bool.SDL_FALSE)
+            if (!SDL_HasClipboardData(mimeType))
             {
                 data = default;
                 return false;
@@ -98,20 +93,20 @@ namespace osu.Framework.Platform.SDL3
             if (pointer == IntPtr.Zero)
             {
                 Logger.Log($"Failed to get SDL clipboard data for {mimeType}. SDL error: {SDL_GetError()}");
-                data = default;
+                data = null;
                 return false;
             }
 
             try
             {
                 var nativeMemory = new ReadOnlySpan<byte>((void*)pointer, (int)nativeSize);
-                data = decoder(nativeMemory);
-                return data != null;
+                data = Image.Load<TPixel>(TextureUpload.DECODER_OPTIONS, nativeMemory);
+                return true;
             }
             catch (Exception e)
             {
                 Logger.Error(e, $"Failed to decode clipboard data for {mimeType}.");
-                data = default;
+                data = null;
                 return false;
             }
             finally
@@ -128,7 +123,7 @@ namespace osu.Framework.Platform.SDL3
             // TODO: support multiple mime types in a single callback
             fixed (byte* ptr = Encoding.UTF8.GetBytes(mimeType + '\0'))
             {
-                if (SDL_SetClipboardData(&dataCallback, &cleanupCallback, objectHandle.Handle, &ptr, 1) == SDL_bool.SDL_FALSE)
+                if (!SDL_SetClipboardData(&dataCallback, &cleanupCallback, objectHandle.Handle, &ptr, 1))
                 {
                     objectHandle.Dispose();
                     Logger.Log($"Failed to set clipboard data callback. SDL error: {SDL_GetError()}");

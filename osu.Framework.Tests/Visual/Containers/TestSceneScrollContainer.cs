@@ -525,7 +525,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep($"scroll to {position}", () =>
             {
                 scrollContainer.ScrollTo(position, false);
-                immediateScrollPosition = scrollContainer.Current;
+                immediateScrollPosition = (float)scrollContainer.Current;
             });
 
             AddAssert($"immediately scrolled to {clampedTarget}", () => Precision.AlmostEquals(clampedTarget, immediateScrollPosition, 1));

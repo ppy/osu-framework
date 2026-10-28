@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Markdig.Syntax.Inlines;
 using NUnit.Framework;
@@ -13,6 +14,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Containers.Markdown;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Network;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
@@ -348,6 +350,36 @@ Here's some more text[^test2] with another footnote!
 
 [^test]: This is a **footnote**.
 [^test2]: This is another footnote [with a link](https://google.com/)!");
+        }
+
+        [Test]
+        public void TestTableContentNotOverflow()
+        {
+            AddStep("Add Table", () =>
+            {
+                markdownContainer.Text = @"| Name | Effect | Notes |
+| :-- | :-- | :-- |
+| `Background dim` | Darken the playfield (including storyboards and/or background videos). | During breaks, the dim is decreased by 30% (max 0%) (this behaviour can be disabled in the options). *Note: Background dim changes are saved per beatmap but will be lost after closing osu!.* |
+| `Disable storyboard` | Remove all storyboard elements. This does not affect [Kiai Time](/wiki/Gameplay/Kiai_time) and the background video, if any. | This is recommended for players with epilepsy issues for when the beatmap displays an epilepsy warning. This option is disabled if there is no storyboard to play. |
+| `Ignore beatmap skin` | Use the player's selected skin instead of the beatmap's included skin. | This requires a retry to take effect. |
+| `Ignore beatmap hitsounds` | Use the player's selected skin's hitsounds instead of the beatmap's custom hitsounds, if any. | This requires a retry to take effect. |
+| `Disable video` | Do not play the background video. This does not remove the storyboard. | This requires a retry if activated after the gameplay begins. This option is disabled if there is no background video to play. |";
+            });
+
+            AddAssert("Table not overflow", () =>
+            {
+                var table = markdownContainer.ChildrenOfType<MarkdownTable>().Single();
+                var tableCells = table.ChildrenOfType<MarkdownTableCell>().ToArray();
+
+                float totalCellsWidth = tableCells[0].DrawWidth + tableCells[1].DrawWidth + tableCells[2].DrawWidth;
+                return totalCellsWidth <= table.DrawWidth;
+            });
+
+            AddAssert("Text not overflow", () =>
+            {
+                var texts = markdownContainer.ChildrenOfType<SpriteText>();
+                return texts.All(s => s.DrawWidth <= s.Parent!.DrawWidth);
+            });
         }
 
         private partial class TestMarkdownContainer : MarkdownContainer

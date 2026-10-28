@@ -128,6 +128,12 @@ namespace osu.Framework.Testing.Input
 
         public void MoveTouchTo(Touch touch) => Input(new TouchInput(touch, CurrentState.Touch.IsActive(touch.Source)));
 
+        public void MovePenTo(Drawable drawable, Vector2? offset = null, TabletPenDeviceType deviceType = TabletPenDeviceType.Unknown)
+            => MovePenTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre) + (offset ?? Vector2.Zero), deviceType);
+
+        public void MovePenTo(Vector2 position, TabletPenDeviceType deviceType = TabletPenDeviceType.Unknown)
+            => Input(new MousePositionAbsoluteInputFromPen { Position = position, DeviceType = deviceType });
+
         public new bool TriggerClick() =>
             throw new InvalidOperationException($"To trigger a click via a {nameof(ManualInputManager)} use {nameof(Click)} instead.");
 
@@ -164,6 +170,9 @@ namespace osu.Framework.Testing.Input
 
         public void PressMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, true));
         public void ReleaseMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, false));
+
+        public void PressPen(TabletPenDeviceType deviceType = TabletPenDeviceType.Unknown) => Input(new MouseButtonInputFromPen(true) { DeviceType = deviceType });
+        public void ReleasePen(TabletPenDeviceType deviceType = TabletPenDeviceType.Unknown) => Input(new MouseButtonInputFromPen(false) { DeviceType = deviceType });
 
         public void PressTabletPenButton(TabletPenButton penButton) => Input(new TabletPenButtonInput(penButton, true));
         public void ReleaseTabletPenButton(TabletPenButton penButton) => Input(new TabletPenButtonInput(penButton, false));

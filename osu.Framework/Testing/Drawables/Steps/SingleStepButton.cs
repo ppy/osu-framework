@@ -1,24 +1,23 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
     public partial class SingleStepButton : StepButton
     {
-        public new Action Action;
+        public new required Action Action { get; init; }
 
-        public SingleStepButton(bool isSetupStep = false)
-            : base(isSetupStep)
+        public SingleStepButton()
         {
-            base.Action = () =>
-            {
-                Action?.Invoke();
-                Success();
-            };
+            base.Action = clickAction;
+        }
+
+        private void clickAction()
+        {
+            Action();
+            Success();
         }
     }
 }

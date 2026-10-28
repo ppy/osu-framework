@@ -3,8 +3,9 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
+using osu.Framework.Platform;
+using osu.Framework.Platform.Linux.Native;
 using osu.Framework.Platform.Windows.Native;
 
 namespace osu.Framework.Timing
@@ -32,11 +33,14 @@ namespace osu.Framework.Timing
         /// </summary>
         public double TimeSlept { get; private set; }
 
-        private IntPtr waitableTimer;
+        private readonly INativeSleep? nativeSleep;
 
         internal ThrottledFrameClock()
         {
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows) createWaitableTimer();
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
+                nativeSleep = new WindowsNativeSleep();
+            else if (RuntimeInfo.IsUnix && UnixNativeSleep.Available)
+                nativeSleep = new UnixNativeSleep();
         }
 
         public override void ProcessFrame()
@@ -91,7 +95,7 @@ namespace osu.Framework.Timing
 
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(milliseconds);
 
-            if (!waitWaitableTimer(timeSpan))
+            if (nativeSleep?.Sleep(timeSpan) != true)
                 Thread.Sleep(timeSpan);
 
             return (CurrentTime = SourceTime) - before;
@@ -99,43 +103,7 @@ namespace osu.Framework.Timing
 
         public void Dispose()
         {
-            if (waitableTimer != IntPtr.Zero)
-                Execution.CloseHandle(waitableTimer);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool waitWaitableTimer(TimeSpan timeSpan)
-        {
-            if (waitableTimer == IntPtr.Zero) return false;
-
-            // Not sure if we want to fall back to Thread.Sleep on failure here, needs further investigation.
-            if (Execution.SetWaitableTimerEx(waitableTimer, Execution.CreateFileTime(timeSpan), 0, null, default, IntPtr.Zero, 0))
-            {
-                Execution.WaitForSingleObject(waitableTimer, Execution.INFINITE);
-                return true;
-            }
-
-            return false;
-        }
-
-        private void createWaitableTimer()
-        {
-            try
-            {
-                // Attempt to use CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, only available since Windows 10, version 1803.
-                waitableTimer = Execution.CreateWaitableTimerEx(IntPtr.Zero, null,
-                    Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_MANUAL_RESET | Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, Execution.TIMER_ALL_ACCESS);
-
-                if (waitableTimer == IntPtr.Zero)
-                {
-                    // Fall back to a more supported version. This is still far more accurate than Thread.Sleep.
-                    waitableTimer = Execution.CreateWaitableTimerEx(IntPtr.Zero, null, Execution.CreateWaitableTimerFlags.CREATE_WAITABLE_TIMER_MANUAL_RESET, Execution.TIMER_ALL_ACCESS);
-                }
-            }
-            catch
-            {
-                // Any kind of unexpected exception should fall back to Thread.Sleep.
-            }
+            nativeSleep?.Dispose();
         }
     }
 }

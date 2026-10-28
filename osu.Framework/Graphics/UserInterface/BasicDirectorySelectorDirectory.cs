@@ -5,6 +5,7 @@
 
 using System.IO;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -19,7 +20,7 @@ namespace osu.Framework.Graphics.UserInterface
             Font = FrameworkFont.Regular.With(size: FONT_SIZE)
         };
 
-        public BasicDirectorySelectorDirectory(DirectoryInfo directory, string displayName = null)
+        public BasicDirectorySelectorDirectory(DirectoryInfo directory, LocalisableString? displayName = null)
             : base(directory, displayName)
         {
         }

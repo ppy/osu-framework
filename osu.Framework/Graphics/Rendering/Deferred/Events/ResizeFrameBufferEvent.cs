@@ -9,6 +9,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     internal readonly record struct ResizeFrameBufferEvent(ResourceReference FrameBuffer, Vector2I Size)
     {
         public static RenderEvent Create(DeferredRenderer renderer, DeferredFrameBuffer frameBuffer, Vector2I size)
-            => RenderEvent.Init(new ResizeFrameBufferEvent(renderer.Context.Reference(frameBuffer), size));
+            => RenderEvent.Create(new ResizeFrameBufferEvent(renderer.Context.Reference(frameBuffer), size));
     }
 }

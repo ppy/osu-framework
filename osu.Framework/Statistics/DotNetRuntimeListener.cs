@@ -74,12 +74,12 @@ namespace osu.Framework.Statistics
                 case source_runtime:
                     switch ((GCEventType)data.EventId)
                     {
-                        case GCEventType.GCStart_V1 when data.Payload != null:
+                        case GCEventType.GCStartV1 when data.Payload != null:
                             // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcstart_v1_event
                             GlobalStatistics.Get<int>(gc_statistics_grouping, $"Collections Gen{data.Payload[1]}").Value++;
                             break;
 
-                        case GCEventType.GCHeapStats_V1 when data.Payload != null:
+                        case GCEventType.GCHeapStatsV1 when data.Payload != null:
                             // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcheapstats_v1_event
                             for (int i = 0; i <= 6; i += 2)
                                 addStatistic<ulong>($"Size Gen{i / 2}", data.Payload[i]);
@@ -88,7 +88,7 @@ namespace osu.Framework.Statistics
                             addStatistic<uint>("Pinned objects", data.Payload[10]);
                             break;
 
-                        case GCEventType.GCAllocationTick_V2 when data.Payload != null:
+                        case GCEventType.GCAllocationTickV2 when data.Payload != null:
                             string name = (string)data.Payload[5];
                             if (string.IsNullOrEmpty(name))
                                 break;
@@ -134,9 +134,9 @@ namespace osu.Framework.Statistics
 
         private enum GCEventType
         {
-            GCStart_V1 = 1,
-            GCHeapStats_V1 = 4,
-            GCAllocationTick_V2 = 10,
+            GCStartV1 = 1,
+            GCHeapStatsV1 = 4,
+            GCAllocationTickV2 = 10,
             FinalizeObject = 29
         }
     }

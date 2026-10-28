@@ -47,7 +47,7 @@ namespace osu.Framework.SourceGeneration.Tests.Dependencies
 
         [Theory]
         [MemberData(nameof(CheckWithStatisticsData))]
-        public void CheckWithStatistics(string name, (int, int, int)[] expectedStatistics)
+        public void CheckWithStatistics(string name, (int syntaxTargetCreated, int semanticTargetCreated, int emitHits)[] expectedStatistics)
         {
             GetTestSources(name,
                 out (string filename, string content)[] commonSources,

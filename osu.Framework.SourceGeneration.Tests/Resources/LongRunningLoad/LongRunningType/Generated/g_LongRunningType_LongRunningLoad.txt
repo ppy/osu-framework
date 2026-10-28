@@ -5,5 +5,6 @@
 partial class LongRunningType : global::osu.Framework.Allocation.ISourceGeneratedLongRunningLoadCache
 {
     global::System.Type global::osu.Framework.Allocation.ISourceGeneratedLongRunningLoadCache.KnownType => typeof(global::LongRunningType);
+
     bool global::osu.Framework.Allocation.ISourceGeneratedLongRunningLoadCache.IsLongRunning => true;
 }

@@ -115,8 +115,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                 "Loop(1 sec pause; 1 sec rotate)",
                 "Complex transform 1 (should end in sync with CT2)",
                 "Complex transform 2 (should end in sync with CT1)",
-                $"Red on {nameof(TransformSequence<Container>)}.{nameof(TransformSequence<Container>.OnAbort)}",
-                $"Red on {nameof(TransformSequence<Container>)}.{nameof(TransformSequence<Container>.Finally)}",
+                $"Red on {nameof(TransformSequence<>)}.{nameof(TransformSequence<>.OnAbort)}",
+                $"Red on {nameof(TransformSequence<>)}.{nameof(TransformSequence<>.Finally)}",
                 "Red after instant transform",
                 "Red after instant transform 1 sec in the past",
                 "Red after 1 sec transform 1 sec in the past",
@@ -157,9 +157,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void animate()
         {
-            boxes[0].Delay(500).Then(500).Then(500).Then(
-                b => b.Delay(500).Spin(1000, RotationDirection.Counterclockwise)
-            );
+            boxes[0].Delay(500).Then(500).Then(500).Then(b => b.Delay(500).Spin(1000, RotationDirection.Counterclockwise));
 
             boxes[1].Spin(1000, RotationDirection.Counterclockwise);
 
@@ -184,9 +182,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         b => b.RotateTo(0),
                         b => b.ScaleTo(2)
                     )
-                    .Then(
-                        b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)).Delay(500).ScaleTo(0.5f, 500)
-                    )
+                    .Then(b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)).Delay(500).ScaleTo(0.5f, 500))
                     .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500)
                     .Finally(_ => finalizeTriggered = true);
 

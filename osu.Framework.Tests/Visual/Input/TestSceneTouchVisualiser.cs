@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         public partial class TouchVisualiser : CompositeDrawable
         {
-            private readonly Drawable[] drawableTouches = new Drawable[10];
+            private readonly Drawable[] drawableTouches = new Drawable[TouchState.MAX_TOUCH_COUNT];
 
             public TouchVisualiser()
             {

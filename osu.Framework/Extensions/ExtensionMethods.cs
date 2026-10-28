@@ -245,17 +245,6 @@ namespace osu.Framework.Extensions
             return type.GetField(value.ToString() ?? string.Empty)?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
         }
 
-        private static string toLowercaseHex(this byte[] bytes)
-        {
-            // Convert.ToHexString is upper-case, so we are doing this ourselves
-
-            return string.Create(bytes.Length * 2, bytes, (span, b) =>
-            {
-                for (int i = 0; i < b.Length; i++)
-                    _ = b[i].TryFormat(span[(i * 2)..], out _, "x2");
-            });
-        }
-
         /// <summary>
         /// Gets a SHA-2 (256bit) hash for the given stream, seeking the stream before and after.
         /// </summary>
@@ -264,7 +253,7 @@ namespace osu.Framework.Extensions
         public static string ComputeSHA2Hash(this Stream stream)
         {
             stream.Seek(0, SeekOrigin.Begin);
-            string hash = SHA256.HashData(stream).toLowercaseHex();
+            string hash = Convert.ToHexStringLower(SHA256.HashData(stream));
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
@@ -275,18 +264,18 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="str">The string to create a hash from.</param>
         /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
-        public static string ComputeSHA2Hash(this string str) => SHA256.HashData(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
+        public static string ComputeSHA2Hash(this string str) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
 
         public static string ComputeMD5Hash(this Stream stream)
         {
             stream.Seek(0, SeekOrigin.Begin);
-            string hash = MD5.HashData(stream).toLowercaseHex();
+            string hash = Convert.ToHexStringLower(MD5.HashData(stream));
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
         }
 
-        public static string ComputeMD5Hash(this string input) => MD5.HashData(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
+        public static string ComputeMD5Hash(this string input) => Convert.ToHexStringLower(MD5.HashData(Encoding.UTF8.GetBytes(input)));
 
         /// <summary>
         /// Standardise the path string using '/' as directory separator.
@@ -307,19 +296,6 @@ namespace osu.Framework.Extensions
         /// <returns>The path with DirectorySeparatorChar trimmed.</returns>
         public static string TrimDirectorySeparator(this string path)
             => path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-
-        /// <summary>
-        /// Whether this character is an ASCII digit (0-9).
-        /// </summary>
-        /// <remarks>
-        /// Useful for checking if a character plays well with <c>int.TryParse()</c>.
-        /// <see cref="char.IsNumber(char)"/> returns <c>true</c> for non-ASCII digits and other Unicode numbers;
-        /// we don't want that, so we explicitly check the character value.
-        /// </remarks>
-        /// <param name="character">The character to check.</param>
-        /// <returns>True if the character is an ASCII digit.</returns>
-        [Obsolete("Use char.IsAsciiDigit.")] // can be removed 20240901
-        public static bool IsAsciiDigit(this char character) => char.IsAsciiDigit(character);
 
         /// <summary>
         /// Checks whether the provided URL is a safe protocol to execute a system <see cref="Process.Start()"/> call with.

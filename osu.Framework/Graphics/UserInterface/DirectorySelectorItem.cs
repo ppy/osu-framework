@@ -6,13 +6,14 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract partial class DirectorySelectorItem : CompositeDrawable
     {
-        private readonly string displayName;
+        private readonly LocalisableString? displayName;
 
         /// <summary>
         /// Gets or sets the font size of this <see cref="DirectorySelectorItem"/>'s icon and text.
@@ -31,7 +32,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected FillFlowContainer Flow;
 
-        protected DirectorySelectorItem(string displayName = null)
+        protected DirectorySelectorItem(LocalisableString? displayName = null)
         {
             this.displayName = displayName;
         }

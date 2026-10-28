@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
+// ReSharper disable InconsistentNaming
+
 namespace osu.Framework.Platform.Linux.Native
 {
     public static class Library

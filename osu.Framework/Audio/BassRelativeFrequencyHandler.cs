@@ -67,12 +67,9 @@ namespace osu.Framework.Audio
             if (channel == 0)
                 throw new InvalidOperationException("Attempted to set the channel frequency without calling SetChannel() first.");
 
-            // http://bass.radio42.com/help/html/ff7623f0-6e9f-6be8-c8a7-17d3a6dc6d51.htm (BASS_ATTRIB_FREQ's description)
-            // Above documentation shows the frequency limits which the constants (min_bass_freq, max_bass_freq) came from.
-            const int min_bass_freq = 100;
-            const int max_bass_freq = 100000;
-
-            int channelFrequency = (int)Math.Clamp(Math.Abs(initialFrequency * relativeFrequency), min_bass_freq, max_bass_freq);
+            // In the past, allowing frequency to go too low (like 1 Hz) caused audible artifacts.
+            // For this reason, the lower range is clamped to 100Hz, a value which is usually low enough to naturally be silent.
+            int channelFrequency = (int)Math.Max(100, Math.Abs(initialFrequency * relativeFrequency));
             Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, channelFrequency);
 
             // Maintain internal pause on zero frequency due to BASS not supporting them (0 is took for original rate in BASS API)

@@ -5,6 +5,8 @@ using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 
+// ReSharper disable InconsistentNaming
+
 namespace osu.Framework.Platform.Windows.Native
 {
     internal static class Execution

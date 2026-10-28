@@ -188,7 +188,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("first shown", () => this.ChildrenOfType<Popover>().Single().Name == Anchor.TopLeft.ToString());
+            AddAssert("first shown", () => this.ChildrenOfType<Popover>().Single().Name == nameof(Anchor.TopLeft));
 
             AddStep("click last button", () =>
             {
@@ -196,7 +196,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("last shown", () => this.ChildrenOfType<Popover>().Single().Name == Anchor.BottomRight.ToString());
+            AddAssert("last shown", () => this.ChildrenOfType<Popover>().Single().Name == nameof(Anchor.BottomRight));
         }
 
         [Test]

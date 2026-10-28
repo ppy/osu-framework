@@ -1,12 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Configuration
 {
+    // todo: revisit when we have a way to exclude enum members from naming rules
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum RendererType
     {
         [Description("Automatic")]
@@ -26,11 +28,6 @@ namespace osu.Framework.Configuration
         /// </summary>
         [Description("OpenGL")]
         OpenGL,
-
-        // Can be removed 20240820
-        [Obsolete]
-        [Description("OpenGL (Legacy)")]
-        OpenGLLegacy,
 
         [Description("Metal (Experimental)")]
         Deferred_Metal = 32,

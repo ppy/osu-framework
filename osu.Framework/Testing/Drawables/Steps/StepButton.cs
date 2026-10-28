@@ -1,11 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
@@ -14,15 +13,56 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public abstract partial class StepButton : CompositeDrawable
+    public abstract partial class StepButton : CompositeDrawable, IHasTooltip
     {
+        public required bool IsSetupStep { get; init; }
+        public Action? Action { get; set; }
+
         public virtual int RequiredRepetitions => 1;
 
-        protected Box Light;
-        protected Box Background;
-        protected SpriteText SpriteText;
+        protected virtual Color4 IdleColour => new Color4(0.15f, 0.15f, 0.15f, 1);
+        protected virtual Color4 RunningColour => new Color4(0.5f, 0.5f, 0.5f, 1);
 
-        public Action Action { get; set; }
+        protected readonly Box Light;
+        protected readonly Box Background;
+        protected readonly SpriteText SpriteText;
+
+        protected StepButton()
+        {
+            InternalChildren = new Drawable[]
+            {
+                Background = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = IdleColour,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                },
+                Light = new Box
+                {
+                    RelativeSizeAxes = Axes.Y,
+                    Width = 5,
+                },
+                SpriteText = new SpriteText
+                {
+                    Truncate = true,
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
+                    RelativeSizeAxes = Axes.X,
+                    Font = FrameworkFont.Regular.With(size: 14),
+                    X = 5,
+                    Padding = new MarginPadding(5)
+                }
+            };
+
+            Height = 20;
+            RelativeSizeAxes = Axes.X;
+
+            BorderThickness = 1.5f;
+            BorderColour = new Color4(0.15f, 0.15f, 0.15f, 1);
+
+            Masking = true;
+        }
 
         public LocalisableString Text
         {
@@ -40,49 +80,6 @@ namespace osu.Framework.Testing.Drawables.Steps
                 lightColour = value;
                 if (IsLoaded) Reset();
             }
-        }
-
-        public readonly bool IsSetupStep;
-
-        protected virtual Color4 IdleColour => new Color4(0.15f, 0.15f, 0.15f, 1);
-
-        protected virtual Color4 RunningColour => new Color4(0.5f, 0.5f, 0.5f, 1);
-
-        protected StepButton(bool isSetupStep = false)
-        {
-            IsSetupStep = isSetupStep;
-
-            InternalChildren = new Drawable[]
-            {
-                Background = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = IdleColour,
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                },
-                Light = new Box
-                {
-                    RelativeSizeAxes = Axes.Y,
-                    Width = 5,
-                },
-                SpriteText = new SpriteText
-                {
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    Font = FrameworkFont.Regular.With(size: 14),
-                    X = 5,
-                    Padding = new MarginPadding(5)
-                }
-            };
-
-            Height = 20;
-            RelativeSizeAxes = Axes.X;
-
-            BorderThickness = 1.5f;
-            BorderColour = new Color4(0.15f, 0.15f, 0.15f, 1);
-
-            Masking = true;
         }
 
         protected override void LoadComplete()
@@ -145,5 +142,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         }
 
         public override string ToString() => $@"""{Text}"" " + base.ToString();
+
+        LocalisableString IHasTooltip.TooltipText => SpriteText.IsTruncated ? Text : string.Empty;
     }
 }

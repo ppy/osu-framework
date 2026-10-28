@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.StateChanges;
@@ -58,7 +59,7 @@ namespace osu.Framework.Input.Handlers
 
         protected ConcurrentQueue<IInput> PendingInputs = new ConcurrentQueue<IInput>();
 
-        private readonly object pendingInputsRetrievalLock = new object();
+        private readonly Lock pendingInputsRetrievalLock = new Lock();
 
         /// <summary>
         /// Add all pending states since the last call to this method to a provided list.
@@ -94,7 +95,14 @@ namespace osu.Framework.Input.Handlers
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="level">The verbosity level.</param>
         /// <param name="exception">An optional related exception.</param>
-        protected void Log(string message, LogLevel level = LogLevel.Verbose, Exception exception = null) => logger.Add($"[{Description}] {message}", level, exception);
+        protected void Log(string message, LogLevel level = LogLevel.Verbose, Exception exception = null)
+        {
+            // too noisy and pointless
+            if (message.Contains("Searching for tablet"))
+                return;
+
+            logger.Add($"[{this}] {message}", level, exception);
+        }
 
         public override string ToString() => GetType().Name;
 

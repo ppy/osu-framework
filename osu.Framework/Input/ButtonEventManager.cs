@@ -133,9 +133,18 @@ namespace osu.Framework.Input
             }
 
             if (handledBy != null)
-                Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+            {
+                Logger.Log(SuppressLoggingEventInformation(handledBy)
+                    ? $"{e.GetType().Name} handled by {handledBy}."
+                    : $"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+            }
 
             return handledBy;
         }
+
+        /// <summary>
+        /// Whether information about the event should be suppressed from logging for the given drawable.
+        /// </summary>
+        protected virtual bool SuppressLoggingEventInformation(Drawable drawable) => false;
     }
 }

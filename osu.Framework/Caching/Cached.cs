@@ -15,7 +15,7 @@ namespace osu.Framework.Caching
             get
             {
                 if (!IsValid)
-                    throw new InvalidOperationException($"May not query {nameof(Value)} of an invalid {nameof(Cached<T>)}.");
+                    throw new InvalidOperationException($"May not query {nameof(Value)} of an invalid {nameof(Cached<>)}.");
 
                 return value;
             }

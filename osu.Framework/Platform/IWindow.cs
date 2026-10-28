@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
@@ -37,6 +38,22 @@ namespace osu.Framework.Platform
         /// Creates the concrete window implementation.
         /// </summary>
         void Create();
+
+        /// <summary>
+        /// Start the window's run loop.
+        /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
+        /// </summary>
+        void Run();
+
+        /// <summary>
+        /// Invoked once a draw session has finished.
+        /// </summary>
+        void OnDraw();
+
+        /// <summary>
+        /// Forcefully closes the window.
+        /// </summary>
+        void Close();
 
         /// <summary>
         /// Invoked once every window event loop.
@@ -81,7 +98,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user drops a file into the window.
         /// </summary>
-        public event Action<string>? DragDrop;
+        event Action<string>? DragDrop;
 
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
@@ -109,6 +126,11 @@ namespace osu.Framework.Platform
         WindowState WindowState { get; set; }
 
         /// <summary>
+        /// Invoked when <see cref="WindowState"/> changes.
+        /// </summary>
+        event Action<WindowState>? WindowStateChanged;
+
+        /// <summary>
         /// Returns the default <see cref="WindowMode"/> for the implementation.
         /// </summary>
         WindowMode DefaultWindowMode { get; }
@@ -124,6 +146,15 @@ namespace osu.Framework.Platform
         /// The safe area insets are provided by the operating system and dynamically change as the user rotates the device.
         /// </summary>
         BindableSafeArea SafeAreaPadding { get; }
+
+        /// <summary>
+        /// The size of the window decoration and border, relative to <see cref="Size"/>.
+        /// </summary>
+        /// <remarks>
+        /// This may include the invisible resize border, even when maximised.
+        /// Usually 0 when in borderless or fullscreen.
+        /// </remarks>
+        IBindable<MarginPadding> BorderSize { get; }
 
         /// <summary>
         /// The <see cref="WindowMode"/>s supported by this <see cref="IWindow"/> implementation.
@@ -160,11 +191,6 @@ namespace osu.Framework.Platform
         /// The <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
         IBindable<DisplayMode> CurrentDisplayMode { get; }
-
-        /// <summary>
-        /// Forcefully closes the window.
-        /// </summary>
-        void Close();
 
         /// <summary>
         /// Attempts to raise the window, bringing it above other windows and requesting input focus.
@@ -212,42 +238,54 @@ namespace osu.Framework.Platform
         void DisableScreenSuspension();
 
         /// <summary>
-        /// Start the window's run loop.
-        /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
-        /// </summary>
-        void Run();
-
-        /// <summary>
-        /// Invoked once a draw session has finished.
-        /// </summary>
-        void OnDraw();
-
-        /// <summary>
         /// Whether the window currently has focus.
         /// </summary>
+        [Obsolete("Use IWindow.IsActive.Value instead.")] // can be removed 20250528
         bool Focused { get; }
 
         /// <summary>
         /// Sets the window icon to the provided <paramref name="imageStream"/>.
         /// </summary>
-        public void SetIconFromStream(Stream imageStream);
+        void SetIconFromStream(Stream imageStream);
 
         /// <summary>
         /// Convert a screen based coordinate to local window space.
         /// </summary>
         /// <param name="point"></param>
+        [Obsolete("This member should not be used. It was never properly implemented for cross-platform use.")] // can be removed 20250528
         Point PointToClient(Point point);
 
         /// <summary>
         /// Convert a window based coordinate to global screen space.
         /// </summary>
         /// <param name="point"></param>
+        [Obsolete("This member should not be used. It was never properly implemented for cross-platform use.")] // can be removed 20250528
         Point PointToScreen(Point point);
 
         /// <summary>
-        /// The client size of the window (excluding any window decoration/border).
+        /// The client size of the window in pixels (excluding any window decoration/border).
         /// </summary>
         Size ClientSize { get; }
+
+        /// <summary>
+        /// The position of the window.
+        /// </summary>
+        Point Position { get; }
+
+        /// <summary>
+        /// Whether the current <see cref="Position"/> is accurate.
+        /// </summary>
+        bool PositionAccurate { get; }
+
+        /// <summary>
+        /// The size of the window in scaled pixels (excluding any window decoration/border).
+        /// </summary>
+        Size Size { get; }
+
+        /// <summary>
+        /// The ratio of <see cref="ClientSize"/> and <see cref="Size"/>.
+        /// </summary>
+        float Scale { get; }
 
         /// <summary>
         /// The minimum size of the window.
@@ -260,6 +298,11 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or a size less than <see cref="MinSize"/>.</exception>
         Size MaxSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the window is user-resizable.
+        /// </summary>
+        bool Resizable { get; set; }
 
         /// <summary>
         /// The window title.

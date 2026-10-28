@@ -22,6 +22,7 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -110,7 +111,10 @@ namespace osu.Framework.Testing
                     Padding = new MarginPadding { Left = test_list_width },
                     Children = new Drawable[]
                     {
-                        new SafeAreaContainer
+                        new TooltipContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                        }.WithChild(new SafeAreaContainer
                         {
                             SafeAreaOverrideEdges = Edges.Right | Edges.Bottom,
                             RelativeSizeAxes = Axes.Both,
@@ -147,7 +151,7 @@ namespace osu.Framework.Testing
                                     },
                                 }
                             }
-                        },
+                        }),
                         new TestBrowserToolbar
                         {
                             RelativeSizeAxes = Axes.X,
@@ -403,7 +407,7 @@ namespace osu.Framework.Testing
             var methods = newTest.GetType().GetMethods();
 
             var soloTests = methods.Where(m => m.GetCustomAttribute(typeof(SoloAttribute), false) != null).ToArray();
-            if (soloTests.Any())
+            if (soloTests.Length > 0)
                 methods = soloTests;
 
             foreach (var m in methods)
@@ -430,7 +434,7 @@ namespace osu.Framework.Testing
                 {
                     string repeatSuffix = i > 0 ? $" ({i + 1})" : string.Empty;
 
-                    var methodWrapper = new MethodWrapper(m.GetType(), m);
+                    var methodWrapper = new MethodWrapper(m.DeclaringType, m);
 
                     if (methodWrapper.GetCustomAttributes<TestAttribute>(false).SingleOrDefault() != null)
                     {
@@ -479,30 +483,14 @@ namespace osu.Framework.Testing
 
                     foreach (var tcs in m.GetCustomAttributes(typeof(TestCaseSourceAttribute), false).OfType<TestCaseSourceAttribute>())
                     {
-                        IEnumerable sourceValue = getTestCaseSourceValue(m, tcs);
+                        var tcsTests = tcs.BuildFrom(methodWrapper, null);
 
-                        if (sourceValue == null)
-                        {
-                            Debug.Assert(tcs.SourceName != null);
-                            throw new InvalidOperationException($"The value of the source member {tcs.SourceName} must be non-null.");
-                        }
-
-                        foreach (object argument in sourceValue)
+                        foreach (var tcsTest in tcsTests)
                         {
                             hadTestAttributeTest = true;
+                            CurrentTest.AddLabel($"{name}({string.Join(", ", tcsTest.Arguments)}){repeatSuffix}");
 
-                            if (argument is IEnumerable argumentsEnumerable)
-                            {
-                                object[] arguments = argumentsEnumerable.Cast<object>().ToArray();
-
-                                CurrentTest.AddLabel($"{name}({string.Join(", ", arguments)}){repeatSuffix}");
-                                handleTestMethod(m, arguments);
-                            }
-                            else
-                            {
-                                CurrentTest.AddLabel($"{name}({argument}){repeatSuffix}");
-                                handleTestMethod(m, argument);
-                            }
+                            handleTestMethod(m, tcsTest.Arguments);
                         }
                     }
                 }
@@ -519,11 +507,12 @@ namespace osu.Framework.Testing
             {
                 var setUpMethods = ReflectionUtils.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true);
 
-                if (setUpMethods.Any())
+                if (setUpMethods.Length > 0)
                 {
-                    CurrentTest.AddStep(new SingleStepButton(true)
+                    CurrentTest.AddStep(new SingleStepButton
                     {
                         Text = "[SetUp]",
+                        IsSetupStep = true,
                         LightColour = Color4.Teal,
                         Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
                     });
@@ -589,7 +578,7 @@ namespace osu.Framework.Testing
         private void runTests(Action onCompletion)
         {
             int actualStepCount = 0;
-            CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
+            CurrentTest.RunAllSteps(onCompletion, (s, e) => Logger.Error(e, $"Step {s} triggered an error"), s =>
             {
                 if (!interactive || RunAllSteps.Value)
                     return false;

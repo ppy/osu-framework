@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Xunit;
 using VerifyCS = osu.Framework.SourceGeneration.Tests.Verifiers.CSharpSourceGeneratorVerifier<osu.Framework.SourceGeneration.Generators.Dependencies.DependencyInjectionSourceGenerator>;
 
@@ -46,6 +47,20 @@ namespace osu.Framework.SourceGeneration.Tests.Dependencies
             );
 
             return VerifyCS.VerifyAsync(commonSourceFiles, sourceFiles, commonGeneratedFiles, generatedFiles);
+        }
+
+        [Theory]
+        [InlineData("EmptyFile")]
+        public Task CheckDebugNoOutput(string name)
+        {
+            GetTestSources(name,
+                out (string filename, string content)[] commonSourceFiles,
+                out (string filename, string content)[] sourceFiles,
+                out _,
+                out _
+            );
+
+            return VerifyCS.VerifyAsync(commonSourceFiles, sourceFiles, [], [], OptimizationLevel.Debug);
         }
     }
 }

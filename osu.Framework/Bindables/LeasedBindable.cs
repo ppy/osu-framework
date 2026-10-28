@@ -122,7 +122,7 @@ namespace osu.Framework.Bindables
         private void checkValid()
         {
             if (source != null && hasBeenReturned)
-                throw new InvalidOperationException($"Cannot perform operations on a {nameof(LeasedBindable<T>)} that has been {nameof(Return)}ed.");
+                throw new InvalidOperationException($"Cannot perform operations on a {nameof(LeasedBindable<>)} that has been {nameof(Return)}ed.");
         }
     }
 }

@@ -116,8 +116,7 @@ namespace osu.Framework.Extensions.TypeExtensions
             if (!type.IsGenericType)
                 return null;
 
-            // ReSharper disable once ConvertClosureToMethodGroup (see: https://github.com/dotnet/runtime/issues/33747)
-            return underlying_type_cache.GetOrAdd(type, t => Nullable.GetUnderlyingType(t));
+            return underlying_type_cache.GetOrAdd(type, Nullable.GetUnderlyingType);
         }
 
         /// <summary>

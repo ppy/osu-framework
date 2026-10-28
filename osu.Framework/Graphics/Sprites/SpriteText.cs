@@ -114,10 +114,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 text = value;
 
-                if (localisedText != null)
-                {
-                    localisedText.Text = value;
-                }
+                localisedText?.Text = value;
             }
         }
 
@@ -295,7 +292,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// When <see cref="Truncate"/> is enabled, this indicates whether <see cref="Text"/> has been visually truncated.
         /// </summary>
-        protected bool IsTruncated { get; private set; }
+        public bool IsTruncated { get; private set; }
 
         private bool requiresAutoSizedWidth => explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0;
 
@@ -544,7 +541,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// The character to fallback to use if a character glyph lookup failed.
         /// </summary>
-        protected virtual char FallbackCharacter => '?';
+        protected virtual char FallbackCharacter => '•';
 
         private readonly LayoutValue<TextBuilder> textBuilderCache = new LayoutValue<TextBuilder>(Invalidation.DrawSize, InvalidationSource.Parent);
 
