@@ -13,7 +13,7 @@ namespace osu.Framework.Audio.Mixing
     {
         public readonly string Identifier;
 
-        private readonly AudioMixer? fallbackMixer;
+        protected readonly AudioMixer? FallbackMixer;
 
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
@@ -23,7 +23,7 @@ namespace osu.Framework.Audio.Mixing
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
         protected AudioMixer(AudioMixer? fallbackMixer, string identifier)
         {
-            this.fallbackMixer = fallbackMixer;
+            FallbackMixer = fallbackMixer;
             Identifier = identifier;
         }
 
@@ -59,7 +59,7 @@ namespace osu.Framework.Audio.Mixing
         protected void Remove(IAudioChannel channel, bool returnToDefault)
         {
             // If this is the default mixer, prevent removal.
-            if (returnToDefault && fallbackMixer == null)
+            if (returnToDefault && FallbackMixer == null)
                 return;
 
             channel.EnqueueAction(() =>
@@ -72,7 +72,7 @@ namespace osu.Framework.Audio.Mixing
 
                 // Add the channel back to the default mixer so audio can always be played.
                 if (returnToDefault)
-                    fallbackMixer.AsNonNull().Add(channel);
+                    FallbackMixer.AsNonNull().Add(channel);
             });
         }
 
