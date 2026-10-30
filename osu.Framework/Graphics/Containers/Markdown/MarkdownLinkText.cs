@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <code>
     /// [link text](url)
     /// </code>
-    public partial class MarkdownLinkText : CompositeDrawable, IHasTooltip, IMarkdownTextComponent
+    public partial class MarkdownLinkText : CompositeDrawable, IHasTooltip, IMarkdownTextComponent, IMarkdownTextFlowComponent
     {
         public LocalisableString TooltipText => Url;
 
@@ -25,45 +25,68 @@ namespace osu.Framework.Graphics.Containers.Markdown
         private IMarkdownTextComponent parentTextComponent { get; set; } = null!;
 
         [Resolved]
+        private IMarkdownTextFlowComponent parentTextFlowComponent { get; set; } = null!;
+
+        [Resolved]
         private GameHost host { get; set; } = null!;
 
-        private readonly string text;
+        private readonly Inline contentInline;
+
+        private readonly bool hasBold;
+        private readonly bool hasItalic;
 
         protected readonly string Url;
 
-        public MarkdownLinkText(string text, string url)
+        public MarkdownLinkText(string url, Inline contentInline)
         {
-            this.text = text;
             Url = url;
+            this.contentInline = contentInline;
 
             AutoSizeAxes = Axes.Both;
         }
 
-        public MarkdownLinkText(string text, LinkInline linkInline)
-            : this(text, linkInline.Url ?? string.Empty)
+        public MarkdownLinkText(LinkInline linkInline)
+            : this(linkInline.Url, linkInline)
         {
         }
 
-        public MarkdownLinkText(AutolinkInline autolinkInline)
-            : this(autolinkInline.Url, autolinkInline.Url)
+        public MarkdownLinkText(AutolinkInline autolinkInline, bool bold = false, bool italic = false)
+            : this(autolinkInline.Url, autolinkInline)
         {
+            hasBold = bold;
+            hasItalic = italic;
         }
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            SpriteText spriteText;
             InternalChildren = new Drawable[]
             {
                 new ClickableContainer
                 {
                     AutoSizeAxes = Axes.Both,
-                    Child = spriteText = CreateSpriteText(),
+                    Child = CreateContent(),
                     Action = OnLinkPressed,
                 }
             };
+        }
 
-            spriteText.Text = text;
+        protected virtual MarkdownTextFlowContainer CreateContent()
+        {
+            var textFlow = CreateTextFlow();
+
+            switch (contentInline)
+            {
+                case LinkInline linkInline:
+                    textFlow.AddInlineText(linkInline);
+                    break;
+
+                case AutolinkInline autolinkInline:
+                    textFlow.AddEmphasis(autolinkInline.Url, hasBold, hasItalic);
+                    break;
+            }
+
+            return textFlow;
         }
 
         protected virtual void OnLinkPressed() => host.OpenUrlExternally(Url);
@@ -74,5 +97,13 @@ namespace osu.Framework.Graphics.Containers.Markdown
             spriteText.Colour = Color4.DodgerBlue;
             return spriteText;
         }
+
+        public MarkdownTextFlowContainer CreateTextFlow() => parentTextFlowComponent.CreateTextFlow().With(t =>
+        {
+            t.RelativeSizeAxes = Axes.None;
+            t.AutoSizeAxes = Axes.Both;
+            t.Margin = new MarginPadding(0);
+            t.Padding = new MarginPadding(0);
+        });
     }
 }
