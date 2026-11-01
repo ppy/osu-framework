@@ -346,7 +346,7 @@ soft break with '\'";
         {
             AddStep("set content", () => markdownContainer.Text = @"This text has a footnote[^test].
 
-Here's some more text[^test2] with another footnote!
+Here's some more text[^test2] with two of the same footnote[^test2]!
 
 [^test]: This is a **footnote**.
 [^test2]: This is another footnote [with a link](https://google.com/)!");
