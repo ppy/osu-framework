@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Containers.Markdown.Footnotes
                 float baseSize = t.Font.Size;
                 t.Font = t.Font.With(size: baseSize * 0.58f);
                 t.Margin = new MarginPadding { Bottom = 0.33f * baseSize };
-                t.Text = footnoteLink.Index.ToLocalisableString();
+                t.Text = footnoteLink.Footnote.Order.ToLocalisableString();
             });
         }
     }
