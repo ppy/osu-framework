@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +20,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public partial class MarkdownTable : CompositeDrawable
     {
-        private GridContainer tableContainer;
+        private GridContainer tableContainer = null!;
 
         private readonly Table table;
 
@@ -54,7 +52,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 for (int c = 0; c < tableRow.Count; c++)
                 {
                     var columnDimensions = table.ColumnDefinitions[c];
-                    row.Add(CreateTableCell((TableCell)tableRow[c], columnDimensions, rows.Count == 0));
+                    var tableCells = CreateTableCell((TableCell)tableRow[c], columnDimensions, rows.Count == 0);
+                    tableCells.InvalidateParentTable += invalidateDefinitionCache;
+                    row.Add(tableCells);
                 }
 
                 rows.Add(row);
@@ -159,6 +159,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 rowDefinitions[r] = new Dimension(GridSizeMode.Absolute, tableContainer.Content[r].Max(c => ((MarkdownTableCell)c).ContentHeight));
 
             tableContainer.RowDimensions = rowDefinitions;
+        }
+
+        private void invalidateDefinitionCache()
+        {
+            columnDefinitionCache.Invalidate();
+            rowDefinitionCache.Invalidate();
         }
 
         protected virtual MarkdownTableCell CreateTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading) => new MarkdownTableCell(cell, definition);
