@@ -161,6 +161,8 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         protected ObjectHandle<SDL3Window> ObjectHandle { get; private set; }
 
+        private int sdlEventLoggingVerbosity;
+
         protected SDL3Window(GraphicsSurfaceType surfaceType, string appName)
         {
             ObjectHandle = new ObjectHandle<SDL3Window>(this, GCHandleType.Normal);
@@ -225,6 +227,9 @@ namespace osu.Framework.Platform.SDL3
             SDL_SetHint(SDL_HINT_PEN_MOUSE_EVENTS, "0"u8).LogErrorIfFailed();
             SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "composition"u8).LogErrorIfFailed();
             SDL_SetHint(SDL_HINT_WINDOWS_RAW_KEYBOARD, "1"u8).LogErrorIfFailed();
+
+            if (int.TryParse(SDL_GetHint(SDL_HINT_EVENT_LOGGING), out int level))
+                sdlEventLoggingVerbosity = level;
 
             SDLWindowHandle = SDL_CreateWindow(title, Size.Width, Size.Height, flags);
 
@@ -294,6 +299,17 @@ namespace osu.Framework.Platform.SDL3
             Update?.Invoke();
         }
 
+        private void logFilteredEvent(SDL_Event e)
+        {
+            if (sdlEventLoggingVerbosity < 1)
+                return;
+
+            if (sdlEventLoggingVerbosity < 2 && e.Type == SDL_EventType.SDL_EVENT_MOUSE_MOTION)
+                return;
+
+            Logger.Log($@"SDL event handled in filter: {SDL_GetEventDescription(e)}");
+        }
+
         /// <summary>
         /// Handles <see cref="SDL_Event"/>s fired from the SDL event filter.
         /// </summary>
@@ -327,6 +343,7 @@ namespace osu.Framework.Platform.SDL3
                     if (!SDL_TextInputActive(SDLWindowHandle))
                     {
                         handleKeyboardEvent(e.key);
+                        logFilteredEvent(e);
                         return false;
                     }
 
@@ -334,15 +351,18 @@ namespace osu.Framework.Platform.SDL3
 
                 case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
                     handleMouseMotionEvent(e.motion);
+                    logFilteredEvent(e);
                     return false;
 
                 case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
                 case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
                     handleMouseButtonEvent(e.button);
+                    logFilteredEvent(e);
                     return false;
 
                 case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
                     handleMouseWheelEvent(e.wheel);
+                    logFilteredEvent(e);
                     return false;
             }
 
@@ -608,11 +628,6 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_DROP_BEGIN:
                 case SDL_EventType.SDL_EVENT_DROP_COMPLETE:
                     handleDropEvent(e.drop);
-                    break;
-
-                case SDL_EventType.SDL_EVENT_PEN_PROXIMITY_IN:
-                case SDL_EventType.SDL_EVENT_PEN_PROXIMITY_OUT:
-                    handlePenProximityEvent(e.pproximity);
                     break;
 
                 case SDL_EventType.SDL_EVENT_PEN_DOWN:

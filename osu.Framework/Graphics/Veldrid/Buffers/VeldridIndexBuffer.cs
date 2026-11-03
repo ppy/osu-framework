@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
             isDisposed = true;
 
-            renderer.ScheduleDisposal(static t => t.Dispose(), this);
+            renderer.ScheduleDisposal(static b => b.Dispose(), Buffer);
         }
 
         #endregion

@@ -212,6 +212,44 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
+        public void TestFormattedAndLocalisedUsingConcat()
+        {
+            var list = Enumerable.Range(0, 11)
+                                 .Select(i => i % 2 == 0 ? (i / 10f).ToLocalisableString("N2") : "|")
+                                 .ToArray();
+
+            manager.AddLanguage("ja", new FakeStorage("ja"));
+            manager.AddLanguage("fr", new FakeStorage("fr"));
+
+            var formattedText = manager.GetLocalisedBindableString(LocalisableString.Concat(list));
+
+            config.SetValue(FrameworkSetting.Locale, "ja");
+            Assert.AreEqual("0.00|0.20|0.40|0.60|0.80|1.00", formattedText.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "fr");
+            Assert.AreEqual("0,00|0,20|0,40|0,60|0,80|1,00", formattedText.Value);
+        }
+
+        [Test]
+        public void TestFormattedAndLocalisedUsingJoin()
+        {
+            object[] list = Enumerable.Range(0, 11)
+                                      .Select<int, object>(i => (i / 10f).ToLocalisableString("N2"))
+                                      .ToArray();
+
+            manager.AddLanguage("ja", new FakeStorage("ja"));
+            manager.AddLanguage("fr", new FakeStorage("fr"));
+
+            var formattedText = manager.GetLocalisedBindableString(LocalisableString.Join(" / ", list));
+
+            config.SetValue(FrameworkSetting.Locale, "ja");
+            Assert.AreEqual("0.00 / 0.10 / 0.20 / 0.30 / 0.40 / 0.50 / 0.60 / 0.70 / 0.80 / 0.90 / 1.00", formattedText.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "fr");
+            Assert.AreEqual("0,00 / 0,10 / 0,20 / 0,30 / 0,40 / 0,50 / 0,60 / 0,70 / 0,80 / 0,90 / 1,00", formattedText.Value);
+        }
+
+        [Test]
         public void TestNumberCultureAware()
         {
             const double value = 1.23;
