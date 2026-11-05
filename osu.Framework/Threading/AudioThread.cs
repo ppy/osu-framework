@@ -235,10 +235,12 @@ namespace osu.Framework.Threading
             };
             wasapiNotifyProcedure = (notify, device, _) => Scheduler.Add(() =>
             {
-                if (notify == WasapiNotificationType.DefaultOutput)
+                if (notify == WasapiNotificationType.DefaultOutput || notify == WasapiNotificationType.Fail)
                 {
                     freeWasapi();
-                    initWasapi(device);
+
+                    if (initWasapi(device))
+                        updateAudioManagers();
                 }
             });
 
@@ -265,6 +267,19 @@ namespace osu.Framework.Threading
             BassWasapi.Stop();
             BassWasapi.Free();
             globalMixerHandle.Value = null;
+        }
+
+        private void updateAudioManagers()
+        {
+            AudioManager[] currentManagers;
+
+            lock (managers)
+                currentManagers = managers.ToArray();
+
+            int currentDevice = Bass.CurrentDevice;
+
+            foreach (var manager in currentManagers)
+                manager.UpdateDevice(currentDevice);
         }
 
         #endregion
