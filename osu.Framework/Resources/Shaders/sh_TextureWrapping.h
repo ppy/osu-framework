@@ -26,7 +26,11 @@ vec4 wrappedSampler(vec2 wrappedCoord, vec4 texRect, texture2D wrapTexture, samp
         g_WrapModeT == 2 && (wrappedCoord.y < texRect[1] || wrappedCoord.y > texRect[3]))
         return vec4(0.0);
 
-    return texture(sampler2D(wrapTexture, wrapSampler), wrappedCoord, lodBias);
+    lowp vec4 col = texture(sampler2D(wrapTexture, wrapSampler), wrappedCoord, lodBias);
+    if (!g_TextureHasPremultipliedAlpha)
+        col = premul(col);
+
+    return col;
 }
 
 #endif
