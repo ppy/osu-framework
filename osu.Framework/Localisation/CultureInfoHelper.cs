@@ -10,8 +10,6 @@ namespace osu.Framework.Localisation
 {
     public static class CultureInfoHelper
     {
-        // there is a possibility that something changes the current culture before this class is used, but the framework currently doesn't do that.
-
         /// <summary>
         /// The system-default <see cref="CultureInfo"/> used for number, date, time and other string formatting.
         /// </summary>
