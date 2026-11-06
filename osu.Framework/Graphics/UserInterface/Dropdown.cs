@@ -44,6 +44,15 @@ namespace osu.Framework.Graphics.UserInterface
             set => Header.AlwaysShowSearchBar = value;
         }
 
+        /// <summary>
+        /// Whether this <see cref="Dropdown{T}"/> should open/close on OnMouseDown event.
+        /// </summary>
+        public bool ToggleOnMouseDown
+        {
+            get => Header.ToggleOnMouseDown;
+            set => Header.ToggleOnMouseDown = value;
+        }
+
         public bool AllowNonContiguousMatching
         {
             get => Menu.AllowNonContiguousMatching;
@@ -202,7 +211,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Puts the state of this <see cref="Dropdown{T}"/> one level back:
         ///  - If the dropdown search bar contains text, this method will reset it.
-        ///  - If the dropdown is open, this method wil close it.
+        ///  - If the dropdown is open, this method will close it.
         /// </summary>
         public bool Back()
         {
@@ -338,6 +347,23 @@ namespace osu.Framework.Graphics.UserInterface
                 return Back();
 
             return false;
+        }
+
+        protected override void OnMouseUp(MouseUpEvent e)
+        {
+            // Only proceed with the flag
+            if (!ToggleOnMouseDown)
+                return;
+
+            // Do not close the menu if we are releasing on DropdownHeader
+            if (Header.IsHovered)
+                return;
+
+            // Cursor is inside the menu and possibly selecting an item
+            if (Menu.IsHovered)
+                ((IDropdown)this).CommitPreselection();
+
+            Menu.Close();
         }
 
         private void collectionChanged(object sender, NotifyCollectionChangedEventArgs e)
