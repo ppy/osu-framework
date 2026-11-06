@@ -55,6 +55,7 @@ namespace osu.Framework.Tests.Visual.Input
         public void UseParentInputChange()
         {
             addTestInputManagerStep();
+            AddStep("Move mouse", () => InputManager.MoveMouseTo(Content));
             AddStep("Press buttons", () =>
             {
                 InputManager.PressButton(MouseButton.Left);
@@ -267,6 +268,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             AddStep("end touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, testInputManager.ScreenSpaceDrawQuad.Centre)));
 
+            AddStep("bring back mouse", () => InputManager.MoveMouseTo(testInputManager));
             AddStep("press mouse", () => InputManager.PressButton(MouseButton.Left));
             AddAssert("pass-through handled mouse", () => testInputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left);
         }
