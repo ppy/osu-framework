@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Video
     /// <summary>
     /// A sprite which holds a video with a custom conversion matrix.
     /// </summary>
-    internal partial class VideoSprite : Sprite
+    public partial class VideoSprite : Sprite
     {
         private readonly Video video;
 
