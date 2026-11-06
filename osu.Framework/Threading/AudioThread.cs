@@ -123,6 +123,7 @@ namespace osu.Framework.Threading
 
         private WasapiProcedure? wasapiProcedure;
         private WasapiNotifyProcedure? wasapiNotifyProcedure;
+        private ScheduledDelegate? wasapiPendingRecoveryInit;
 
         /// <summary>
         /// If a global mixer is being used, this will be the BASS handle for it.
@@ -233,16 +234,32 @@ namespace osu.Framework.Threading
 
                 return Bass.ChannelGetData(globalMixerHandle.Value!.Value, buffer, length);
             };
-            wasapiNotifyProcedure ??= (notify, device, _) => Scheduler.Add(() =>
+
+            wasapiNotifyProcedure ??= (notify, device, _) =>
             {
-                if (notify == WasapiNotificationType.DefaultOutput || notify == WasapiNotificationType.Fail)
+                switch (notify)
+                {
+                    case WasapiNotificationType.DefaultOutput:
+                        Logger.Log("Attempting BassWasapi reinitialisation after default output change");
+                        break;
+
+                    case WasapiNotificationType.Fail:
+                        Logger.Log("Attempting BassWasapi reinitialisation after initialisation failure");
+                        break;
+
+                    default:
+                        return;
+                }
+
+                wasapiPendingRecoveryInit?.Cancel();
+                wasapiPendingRecoveryInit = Scheduler.Add(() =>
                 {
                     freeWasapi();
 
                     if (initWasapi(device))
                         updateAudioManagers();
-                }
-            });
+                });
+            };
 
             bool initialised = BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Flags: WasapiInitFlags.EventDriven | WasapiInitFlags.AutoFormat, Buffer: 0f, Period: float.Epsilon);
             Logger.Log($"Initialising BassWasapi for device {wasapiDevice}...{(initialised ? "success!" : "FAILED")}");
