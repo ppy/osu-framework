@@ -237,6 +237,7 @@ namespace osu.Framework.Threading
 
             wasapiNotifyProcedure ??= (notify, device, _) =>
             {
+                // see https://www.un4seen.com/doc/#basswasapi/WASAPINOTIFYPROC.html
                 switch (notify)
                 {
                     case WasapiNotificationType.DefaultOutput:
@@ -251,6 +252,10 @@ namespace osu.Framework.Threading
                         return;
                 }
 
+                // to note, when a failure occurs the notify procedure callback only occurs once, so there's
+                // no chance of this getting into a runaway reinitialisation loop.
+                //
+                // the schedule safety here is to avoid a double re-init as two threads are usually involved here.
                 wasapiPendingRecoveryInit?.Cancel();
                 wasapiPendingRecoveryInit = Scheduler.Add(() =>
                 {
