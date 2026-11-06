@@ -226,14 +226,14 @@ namespace osu.Framework.Threading
         {
             // This is intentionally initialised inline and stored to a field.
             // If we don't do this, it gets GC'd away.
-            wasapiProcedure = (buffer, length, _) =>
+            wasapiProcedure ??= (buffer, length, _) =>
             {
                 if (globalMixerHandle.Value == null)
                     return 0;
 
                 return Bass.ChannelGetData(globalMixerHandle.Value!.Value, buffer, length);
             };
-            wasapiNotifyProcedure = (notify, device, _) => Scheduler.Add(() =>
+            wasapiNotifyProcedure ??= (notify, device, _) => Scheduler.Add(() =>
             {
                 if (notify == WasapiNotificationType.DefaultOutput || notify == WasapiNotificationType.Fail)
                 {
