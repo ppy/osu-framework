@@ -83,7 +83,7 @@ namespace osu.Framework.Platform.SDL3
         {
             if (!SDL_HasClipboardData(mimeType))
             {
-                data = default;
+                data = null;
                 return false;
             }
 

@@ -127,7 +127,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("RemoveItem", () =>
             {
-                if (pinnedAndAutoSort.Items.Any())
+                if (pinnedAndAutoSort.Items.Count != 0)
                 {
                     pinnedAndAutoSort.RemoveItem(pinnedAndAutoSort.Items.First());
                 }
@@ -167,11 +167,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Ensure all items", () => removeAllTabControl.Items.Count == items.Length);
 
             AddStep("Remove all items", () => removeAllTabControl.Clear());
-            AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
+            AddAssert("Ensure no items", () => removeAllTabControl.Items.Count == 0);
 
-            AddAssert("Ensure any items", () => withoutDropdownTabControl.Items.Any());
+            AddAssert("Ensure any items", () => withoutDropdownTabControl.Items.Count != 0);
             AddStep("Remove all items", () => withoutDropdownTabControl.Clear());
-            AddAssert("Ensure no items", () => !withoutDropdownTabControl.Items.Any());
+            AddAssert("Ensure no items", () => withoutDropdownTabControl.Items.Count == 0);
 
             AddAssert("Ensure not all items visible on singleline", () => simpleTabcontrol.VisibleItems.Count() < items.Length);
             AddAssert("Ensure all items visible on multiline", () => multilineTabControl.VisibleItems.Count() == items.Length);

@@ -91,7 +91,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     flow.Add(new ResourceDisplay(resourceName, getResource(resourceName)));
             });
 
-            AddAssert("ensure some loaded", () => flow.Children.Any());
+            AddAssert("ensure some loaded", () => flow.Children.Count != 0);
         }
 
         private partial class ResourceDisplay : Container
