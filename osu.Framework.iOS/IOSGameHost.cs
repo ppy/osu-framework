@@ -82,8 +82,7 @@ namespace osu.Framework.iOS
                 UIApplication.SharedApplication.InvokeOnMainThread(() =>
                 {
                     NSUrl nsurl = NSUrl.FromString(url).AsNonNull();
-                    if (UIApplication.SharedApplication.CanOpenUrl(nsurl))
-                        UIApplication.SharedApplication.OpenUrl(nsurl, new NSDictionary(), null);
+                    UIApplication.SharedApplication.OpenUrl(nsurl, new NSDictionary(), null);
                 });
             }
             catch (Exception ex)
