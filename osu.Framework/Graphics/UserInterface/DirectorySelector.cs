@@ -217,7 +217,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             try
             {
-                foreach (var dir in path.GetDirectories().OrderBy(d => d.Name))
+                foreach (var dir in path.GetDirectories().OrderBy(d => d.Name, StringComparer.Ordinal))
                 {
                     if (ShowHiddenItems.Value || !dir.Attributes.HasFlagFast(FileAttributes.Hidden))
                         items.Add(CreateDirectoryItem(dir));

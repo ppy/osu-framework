@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
 
             // Order by upper then lower-case, and exclude auto-generated backing fields of properties
-            AddRange(allMembers.OrderBy(m => m.Name[0]).ThenBy(m => m.Name)
+            AddRange(allMembers.OrderBy(m => m.Name[0]).ThenBy(m => m.Name, StringComparer.Ordinal)
                                .Where(m => m.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
                                .Where(m => m.GetCustomAttribute<DebuggerBrowsableAttribute>()?.State != DebuggerBrowsableState.Never)
                                .Select(m => new PropertyItem(m, source)));

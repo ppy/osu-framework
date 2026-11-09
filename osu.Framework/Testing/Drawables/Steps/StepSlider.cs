@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using System;
+using System.Globalization;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Input.Events;
@@ -93,7 +94,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             var value = Current.Value;
 
             ValueChanged?.Invoke(value);
-            spriteText.Text = $"{text}: {Convert.ToDouble(value):#,0.##}";
+            spriteText.Text = $"{text}: {Convert.ToDouble(value, CultureInfo.CurrentCulture):#,0.##}";
             selection.ResizeWidthTo(normalizedValue);
         }
 

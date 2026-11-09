@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Globalization;
 using System.Numerics;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
@@ -190,7 +191,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!IsHovered && !HasFocus)
                 return false;
 
-            float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
+            float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue, CultureInfo.InvariantCulture) - Convert.ToSingle(currentNumberInstantaneous.MinValue, CultureInfo.InvariantCulture)) / 20;
             if (currentNumberInstantaneous.IsInteger) step = MathF.Ceiling(step);
 
             switch (e.Key)
