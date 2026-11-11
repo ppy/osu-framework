@@ -1,0 +1,338 @@
+BASSASIO 1.4
+Copyright (c) 2005-2026 Un4seen Developments Ltd. All rights reserved.
+
+BASSASIO is basically a wrapper for ASIO drivers, with the addition of channel
+joining and sample format/rate conversion.
+
+
+Requirements
+============
+BASSASIO requires a soundcard with ASIO drivers installed, and an
+SSE-supporting CPU.
+
+The BASS library is not required by BASSASIO, but BASS can of course be used
+for decoding purposes, to apply DSP/FX, etc.
+
+
+Using BASSASIO
+==============
+C/C++, Visual Basic and Delphi APIs and example projects are provided. To use
+BASSASIO with another language you will first have to convert the header file.
+Or you could use LoadLibrary and GetProcAddress.
+
+There is no guarantee that all future BASSASIO versions will be compatible with
+all previous versions, so your program should use BASS_ASIO_GetVersion to check
+the version that is loaded. This also means that you should put BASSASIO.DLL in
+the same directory as your program (not just somewhere in the path), to avoid
+the possibility of a wrong version being loaded.
+
+If you are updating your software from a previous BASSASIO version, then you
+should check the "History" section (below), to see if any of the functions that
+you are using have been affected by a change.
+
+To use BASSASIO with Borland C++ Builder, you will first have to create a
+Borland C++ Builder import library for it. This is done by using the IMPLIB
+tool that comes with Borland C++ Builder. Simply execute this:
+
+	IMPLIB BASSASIOBCB.LIB BASSASIO.DLL
+
+... and then use BASSASIOBCB.LIB in your projects to import BASSASIO.
+
+To use BASSASIO with LCC-Win32, you will first have to create a compatible
+import library for it. This is done by using the PEDUMP and BUILDLIB tools that
+ome with LCC-Win32. Run these 2 commands:
+
+	PEDUMP /EXP BASSASIO.LIB > BASSASIOLCC.EXP
+	BUILDLIB BASSASIOLCC.EXP BASSASIOLCC.LIB
+
+... and then use BASSASIOLCC.LIB in your projects to import BASSASIO.
+
+For the BASSASIO functions that return strings (char*), VB users should use the
+VBStrFromAnsiPtr function to convert the returned pointer into a VB string.
+
+
+Included files
+==============
+BASSASIO.TXT    This file
+BASSASIO.DLL    32-bit BASSASIO module
+BASSASIO.CHM    BASSASIO documentation
+X64\
+  BASSASIO.DLL    64-bit BASSASIO module
+C\
+  BASSASIO.H      BASSASIO C/C++ header file
+  BASSASIO.LIB    32-bit BASSASIO import library
+  BASSASIO.SLN    Visual Studio solution for examples
+  MAKEFILE        Makefile for examples
+  X64\
+    BASSASIO.LIB    64-bit BASSASIO import library
+  CONTEST\        ASIO version of the BASS console example
+    ...
+  DSDTEST\        DSD playback example
+    ...
+  DSPTEST\        ASIO version of the BASS DSP example
+    ...
+  LIST\           Lists ASIO devices
+    ...
+  LIVEFX\         ASIO version of the BASS full-duplex example
+    ...
+  MULTI\          ASIO version of the BASS multiple device example
+    ...
+  RECTEST\        ASIO version of the BASS recording example
+    ...
+  SPEAKERS\       ASIO version of the BASS multi-speaker example
+    ...
+  SYNTH\          ASIO version of the BASS synth example
+    ...
+  BIN\            Precompiled examples
+    CONTEST.EXE
+    DSDTEST.EXE
+    DSPTEST.EXE
+    LIST.EXE
+    LIVEFX.EXE
+    MULTI.EXE
+    RECTEST.EXE
+    SPEAKERS.EXE
+    SYNTH.EXE
+DELPHI\
+  BASSASIO.PAS    BASSASIO Delphi/Pascal unit
+  CONTEST\        Console example
+    ...
+  DSPTEST\        DSP example
+    ...
+  LIST\           List ASIO devices
+    ...
+  LIVEFX\         Full-duplex example
+    ...
+  RECTEST\        Recording example
+    ...
+  SPEAKERS\       Multi-speaker example
+    ...
+VB\
+  BASSASIO.BAS    BASSASIO Visual Basic module
+  DSPTEST\        DSP example
+    ...
+  LIST\           List ASIO devices
+    ...
+  LIVEFX\         Full-duplex example
+    ...
+  MULTI\          Multiple device example
+    ...
+
+NOTE: You may need to "Unblock" the BASSASIO.CHM file in its "Properties" to
+      view it. The documentation can also be viewed online at the BASSASIO
+	  website.
+
+NOTE: To run the example EXEs, first you will need to copy BASSASIO.DLL and
+      BASS.DLL into the same directory as them. BASSDSD.DLL is also required
+	  by the DSDTEST example.
+
+NOTE: To build the examples, you will need to copy the BASS API into the same
+      directory as the BASSASIO API. BASSDSD is also required by the DSDTEST
+	  example.
+
+NOTE: The Delphi and VB examples may not always be up to date with the C
+      examples, so the latter should be preferred as references if possible.
+      
+
+Latest Version
+==============
+The latest version of BASSASIO can be found at the BASSASIO website:
+
+	www.un4seen.com
+
+
+Licence
+=======
+BASSASIO is free for non-commercial use. If you are a non-commercial entity
+(eg. an individual) and you are not making any money from your product
+(through sales/advertising/etc), then you can use BASSASIO in it for free.
+If you wish to use BASSASIO in commercial products, then please also see the
+next section.
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, BASSASIO IS PROVIDED
+"AS IS", WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY
+AND/OR FITNESS FOR A PARTICULAR PURPOSE. THE AUTHORS SHALL NOT BE HELD
+LIABLE FOR ANY DAMAGE THAT MAY RESULT FROM THE USE OF BASSASIO. YOU USE
+BASSASIO ENTIRELY AT YOUR OWN RISK.
+
+Usage of BASSASIO indicates that you agree to the above conditions.
+
+ASIO is a trademark of Steinberg Media Technologies GmbH. All other
+trademarks and registered names contained in the BASSASIO package
+are the property of their respective owners.
+
+Commercial licensing
+--------------------
+BASSASIO is available for use in your commercial products. The licence
+types available are as follows:
+
+SHAREWARE: Allows the usage of BASSASIO in an unlimited number of your
+shareware ("try before you buy") products, which must sell for no more than 40
+Euros each. Non-shareware products are also permitted, but the product price
+limit is 10 Euros in that case. The price limit can be raised by purchasing
+duplicate licences, eg. 2 licences doubles it. If you are an individual (not a
+corporation) making and selling your own software, this is the licence for you.
+
+SINGLE COMMERCIAL: Allows the usage of BASSASIO in one commercial product.
+
+UNLIMITED COMMERCIAL: Allows the usage of BASSASIO in an unlimited number of
+your commercial products. This licence is on a per-site basis, eg. if you are
+creating products with BASSASIO at 2 sites/locations, then 2 licences are
+required.
+
+Please note the products must be end-user products, eg. not components used by
+other products. 
+
+These licences only cover your own software, not the publishing of other's
+software. If you publish other's software, its developers (or the software
+itself) will need to be licensed to use BASSASIO.
+
+In all cases there are no royalties to pay, and you can use future BASSASIO
+updates without further cost.
+
+These licences do not allow reselling/sublicensing of BASSASIO. For example, if
+a product is a development system, the users of said product are not licensed
+to use BASSASIO in their productions; they will need their own licences.
+
+If the standard licences do not meet your requirements, or if you have any
+questions, please get in touch (email: bass@un4seen.com).
+
+Visit the BASSASIO website for the latest pricing:
+
+	www.un4seen.com
+
+
+History
+=======
+These are the major (and not so major) changes in each release, along with the
+functions/options that are introduced/affected by them. There are other little
+tweaks and fixes made along the way too.
+
+1.4.3 - 14/5/2026
+-----------------
+* Pre-enabling of all channels to allow reconfiguration without restarting
+	BASS_ASIO_ALLINPUTS (BASS_ASIO_Init flag)
+	BASS_ASIO_ALLOUTPUTS (BASS_ASIO_Init flag)
+* Output channel level pre-calculation option
+	BASS_ASIO_PRELEVELS (BASS_ASIO_Init flag)
+	BASS_ASIO_ChannelGetLevel
+* Option to provide a window handle to ASIO drivers
+	BASS_ASIO_SetWindow
+* Support for buffers smaller than 17 samples
+	BASS_ASIO_Start
+
+1.4.2 - 21/7/2023
+-----------------
+* Support for sample rate conversion with ASIO formats 24-27 (32-bit data with alignment)
+	BASS_ASIO_ChannelSetRate
+	BASS_ASIO_ChannelEnableBASS
+* Constants added for ASIO formats 24-27 (32-bit data with alignment)
+	BASS_ASIO_FORMAT_32BIT16/18/20/24 (BASS_ASIO_CHANNELINFO formats)
+* Support for disabling channels after device is started
+	BASS_ASIO_ChannelEnable
+	BASS_ASIO_ChannelReset
+* ASIO host thread terminates immediately (no longer delayed) when all devices are freed
+	BASS_ASIO_THREAD (BASS_ASIO_Init flag)
+	BASS_ASIO_Free
+* SSE is required
+
+1.4.1 - 23/6/2021
+-----------------
+* Support for changing channel processing/joins after device is started
+	BASS_ASIO_ChannelEnable/Mirror/BASS
+	BASS_ASIO_ChannelJoin
+* BASS "dummy" stream support for input channels
+	BASS_ASIO_ChannelEnableBASS
+* Fix for bug in volume ramping without resampling
+	BASS_ASIO_ChannelSetVolume
+
+1.4 - 7/5/2019
+--------------
+* First available device initialization option
+	BASS_ASIO_Init
+* BASS channel support
+	BASS_ASIO_ChannelEnableBASS
+	CONTEST/DSDTEST/DSPTEST/LIVEFX/MULTI/SPEAKERS examples updated
+* RMS level retrieval
+	BASS_ASIO_LEVEL_RMS (BASS_ASIO_ChannelGetLevel flag)
+* Volume changes are ramped
+	BASS_ASIO_ChannelSetVolume
+* Dither when converting from floating-point to integer
+	BASS_ASIO_FORMAT_DITHER (BASS_ASIO_ChannelSetFormat flag)
+* Pausing of all input or output channels at once
+	BASS_ASIO_ChannelPause
+* Device locking to prevent access by other threads
+	BASS_ASIO_Lock
+* Resetting of joined channels' settings
+	BASS_ASIO_RESET_JOINED (BASS_ASIO_ChannelReset flag)
+* All input channels are processed before any output channels when multiple threads are enabled
+	BASS_ASIO_Start
+* Negative return values from ASIO channel callbacks are treated as 0
+	ASIOPROC
+
+1.3.1 - 17/12/2014
+------------------
+* DSD support
+	BASS_ASIO_SetDSD
+	BASS_ASIO_FORMAT_DSD_LSB/MSB (BASS_ASIO_ChannelSetFormat formats)
+	DSDTEST example added
+
+1.3 - 17/4/2013
+---------------
+* Multiple threads for parallel ASIOPROC processing
+	BASS_ASIO_Start
+* Access to an driver's "future" function
+	BASS_ASIO_Future
+* Support for conversion to/from ASIO sample format 27 (32-bit data with 24-bit alignment)
+	BASS_ASIO_ChannelSetFormat
+
+1.2.1 - 26/9/2012
+-----------------
+* Checking whether a sample rate is supported
+	BASS_ASIO_CheckRate
+* Level retrieval support with drivers that clear the buffers
+	BASS_ASIO_ChannelGetLevel
+
+1.2 - 22/3/2012
+---------------
+* Improved sample rate conversion (16 point)
+	BASS_ASIO_ChannelSetRate
+* Custom joined channel order
+	BASS_ASIO_JOINORDER (BASS_ASIO_Init flag)
+	BASS_ASIO_ChannelJoin
+* Support for unregistered drivers
+	BASS_ASIO_AddDevice
+* Unicode driver info
+	BASS_ASIO_SetUnicode
+	BASS_ASIO_GetDeviceInfo
+* Fixed level retrieval with drivers that use a single buffer
+	BASS_ASIO_ChannelGetLevel
+
+1.1 - 17/8/2011
+---------------
+* Driver host thread control
+	BASS_ASIO_THREAD (BASS_ASIO_Init flag)
+	BASS_ASIO_INFO (initflags member)
+* Detection of newly installed drivers
+	BASS_ASIO_GetDeviceInfo
+* Duplicate driver entries removed from device list
+	BASS_ASIO_GetDeviceInfo
+* Input resampling bug fix
+
+1.0.1 - 23/10/2009
+------------------
+* Notification of rate changes and reset requests
+	BASS_ASIO_SetNotify
+* 64-bit version introduced
+
+1.0 - 11/6/2008
+---------------
+* First release
+
+
+Bug reports, Suggestions, Comments, Enquiries, etc
+==================================================
+If you have any of the aforementioned, please visit the BASS forum at the
+website.
+

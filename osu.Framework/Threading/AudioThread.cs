@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Statistics;
@@ -17,7 +17,7 @@ using osu.Framework.Platform.Linux.Native;
 
 namespace osu.Framework.Threading
 {
-    public class AudioThread : GameThread
+    public partial class AudioThread : GameThread
     {
         public AudioThread()
             : base(name: "Audio")
@@ -55,6 +55,8 @@ namespace osu.Framework.Threading
 
         private void onNewFrame()
         {
+            checkAsioNotifications();
+
             if (frameCount++ % 1000 == 0)
                 cpu_usage.Value = Bass.CPUUsage;
 
@@ -91,6 +93,8 @@ namespace osu.Framework.Threading
 
         protected override void OnExit()
         {
+            freeAsio();
+
             base.OnExit();
 
             lock (managers)
@@ -122,6 +126,7 @@ namespace osu.Framework.Threading
         // TODO: All this bass init stuff should probably not be in this class.
 
         private WasapiProcedure? wasapiProcedure;
+        private bool wasapiInitialised;
         private WasapiNotifyProcedure? wasapiNotifyProcedure;
         private ScheduledDelegate? wasapiPendingRecoveryInit;
 
@@ -135,6 +140,8 @@ namespace osu.Framework.Threading
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
             Trace.Assert(deviceId != -1); // The real device ID should always be used, as the -1 device has special cases which are hard to work with.
+
+            freeAsio();
 
             // Try to initialise the device, or request a re-initialise.
             if (!Bass.Init(deviceId, Flags: (DeviceInitFlags)128)) // 128 == BASS_DEVICE_REINIT
@@ -152,6 +159,8 @@ namespace osu.Framework.Threading
         internal void FreeDevice(int deviceId)
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
+
+            freeAsio();
 
             int selectedDevice = Bass.CurrentDevice;
 
@@ -272,6 +281,8 @@ namespace osu.Framework.Threading
             if (!initialised)
                 return false;
 
+            wasapiInitialised = true;
+
             BassWasapi.GetInfo(out var wasapiInfo);
             globalMixerHandle.Value = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
             BassWasapi.Start();
@@ -282,13 +293,18 @@ namespace osu.Framework.Threading
 
         private void freeWasapi()
         {
-            if (globalMixerHandle.Value == null) return;
+            wasapiPendingRecoveryInit?.Cancel();
+            wasapiPendingRecoveryInit = null;
 
-            // The mixer probably doesn't need to be recycled. Just keeping things sane for now.
-            Bass.StreamFree(globalMixerHandle.Value.Value);
+            if (!wasapiInitialised) return;
+
+            // Stop callbacks before releasing the mixer they read from.
             BassWasapi.Stop();
             BassWasapi.Free();
+            if (globalMixerHandle.Value.HasValue)
+                Bass.StreamFree(globalMixerHandle.Value.Value);
             globalMixerHandle.Value = null;
+            wasapiInitialised = false;
         }
 
         private void updateAudioManagers()

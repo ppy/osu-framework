@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -33,6 +33,10 @@ namespace osu.Framework.Configuration
             SetDefault(FrameworkSetting.LastDisplayDevice, DisplayIndex.Default);
             SetDefault(FrameworkSetting.AudioDevice, string.Empty);
             SetDefault(FrameworkSetting.AudioUseExperimentalWasapi, false);
+            SetDefault(FrameworkSetting.AudioUseAsio, false);
+            SetDefault(FrameworkSetting.AudioAsioDevice, string.Empty);
+            SetDefault(FrameworkSetting.AudioAsioSampleRate, 48000, 8000, 384000);
+            SetDefault(FrameworkSetting.AudioAsioBufferSize, 0, 0, 8192);
             SetDefault(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
             SetDefault(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
             SetDefault(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
@@ -81,6 +85,10 @@ namespace osu.Framework.Configuration
 
         AudioDevice,
         AudioUseExperimentalWasapi,
+        AudioUseAsio,
+        AudioAsioDevice,
+        AudioAsioSampleRate,
+        AudioAsioBufferSize,
         VolumeUniversal,
         VolumeEffect,
         VolumeMusic,

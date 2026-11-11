@@ -56,4 +56,8 @@
     <PackageReference Include="Markdig" Version="0.23.0" />
     <PackageReference Include="System.Numerics.Tensors" Version="10.0.11" />
   </ItemGroup>
+  <ItemGroup Label="ASIO native libraries">
+    <None Update="runtimes/win-*/native/bassasio.dll" Pack="true" PackagePath="%(Identity)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="LICENCE.BASSASIO.txt" Pack="true" PackagePath="" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

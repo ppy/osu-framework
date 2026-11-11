@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -12,6 +12,33 @@ namespace osu.Framework.Tests.Configuration
     [TestFixture]
     public class FrameworkConfigManagerTest
     {
+        [Test]
+        public void TestAsioConfigurationSaveLoad()
+        {
+            using var storage = new TemporaryNativeStorage(Guid.NewGuid().ToString());
+
+            using (var config = new FrameworkConfigManager(storage))
+            {
+                Assert.That(config.Get<bool>(FrameworkSetting.AudioUseAsio), Is.False);
+                Assert.That(config.Get<string>(FrameworkSetting.AudioAsioDevice), Is.Empty);
+                Assert.That(config.Get<int>(FrameworkSetting.AudioAsioSampleRate), Is.EqualTo(48000));
+                Assert.That(config.Get<int>(FrameworkSetting.AudioAsioBufferSize), Is.Zero);
+
+                config.SetValue(FrameworkSetting.AudioUseAsio, true);
+                config.SetValue(FrameworkSetting.AudioAsioDevice, "Test ASIO driver");
+                config.SetValue(FrameworkSetting.AudioAsioSampleRate, 96000);
+                config.SetValue(FrameworkSetting.AudioAsioBufferSize, 128);
+            }
+
+            using (var config = new FrameworkConfigManager(storage))
+            {
+                Assert.That(config.Get<bool>(FrameworkSetting.AudioUseAsio), Is.True);
+                Assert.That(config.Get<string>(FrameworkSetting.AudioAsioDevice), Is.EqualTo("Test ASIO driver"));
+                Assert.That(config.Get<int>(FrameworkSetting.AudioAsioSampleRate), Is.EqualTo(96000));
+                Assert.That(config.Get<int>(FrameworkSetting.AudioAsioBufferSize), Is.EqualTo(128));
+            }
+        }
+
         [Test]
         public void TestDefault()
         {

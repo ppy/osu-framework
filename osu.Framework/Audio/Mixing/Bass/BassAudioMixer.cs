@@ -294,7 +294,7 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             Handle = manager?.GlobalMixerHandle.Value != null
                 // The decode flag here is super important to maintain the lowest latency audio output.
-                ? BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode)
+                ? BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.MixerPositionEx)
                 : BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
 
             if (Handle == 0)

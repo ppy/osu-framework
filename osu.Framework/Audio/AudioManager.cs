@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -27,7 +27,7 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Audio
 {
-    public class AudioManager : AudioCollectionManager<AudioComponent>
+    public partial class AudioManager : AudioCollectionManager<AudioComponent>
     {
         /// <summary>
         /// The number of BASS audio devices preceding the first real audio device.
@@ -125,7 +125,7 @@ namespace osu.Framework.Audio
 
         /// <summary>
         /// Whether a global mixer is being used for audio routing.
-        /// For now, this is only the case on Windows when using shared mode WASAPI initialisation.
+        /// Used on Windows for shared mode WASAPI and ASIO output.
         /// </summary>
         public IBindable<bool> UsingGlobalMixer => usingGlobalMixer;
 
@@ -187,12 +187,17 @@ namespace osu.Framework.Audio
             sampleByteStore = sampleStore;
 
             thread.RegisterManager(this);
+            initialiseAsioBindings();
 
             if (config != null)
             {
                 // attach config bindables
                 config.BindWith(FrameworkSetting.AudioDevice, AudioDevice);
                 config.BindWith(FrameworkSetting.AudioUseExperimentalWasapi, UseExperimentalWasapi);
+                config.BindWith(FrameworkSetting.AudioAsioDevice, AsioDevice);
+                config.BindWith(FrameworkSetting.AudioAsioSampleRate, AsioSampleRate);
+                config.BindWith(FrameworkSetting.AudioAsioBufferSize, AsioBufferSize);
+                config.BindWith(FrameworkSetting.AudioUseAsio, UseAsio);
                 config.BindWith(FrameworkSetting.VolumeUniversal, Volume);
                 config.BindWith(FrameworkSetting.VolumeEffect, VolumeSample);
                 config.BindWith(FrameworkSetting.VolumeMusic, VolumeTrack);
@@ -200,7 +205,7 @@ namespace osu.Framework.Audio
 
             AudioDevice.ValueChanged += _ => scheduler.AddOnce(initCurrentDevice);
             UseExperimentalWasapi.ValueChanged += _ => scheduler.AddOnce(initCurrentDevice);
-            // initCurrentDevice not required for changes to `GlobalMixerHandle` as it is only changed when experimental wasapi is toggled (handled above).
+            // Device initialisation handles mixer changes for both WASAPI and ASIO.
             GlobalMixerHandle.ValueChanged += handle => usingGlobalMixer.Value = handle.NewValue.HasValue;
 
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
@@ -337,6 +342,9 @@ namespace osu.Framework.Audio
         /// </summary>
         private void initCurrentDevice()
         {
+            if (tryInitAsio())
+                return;
+
             string deviceName = AudioDevice.Value;
 
             // try using the specified device
@@ -564,6 +572,9 @@ namespace osu.Framework.Audio
         // The current device is considered valid if it is enabled, initialized, and not a fallback device.
         protected virtual bool IsCurrentDeviceValid()
         {
+            if (UseAsio.Value && thread.IsAsioActive)
+                return true;
+
             var device = audioDevices.ElementAtOrDefault(Bass.CurrentDevice);
             bool isFallback = string.IsNullOrEmpty(AudioDevice.Value) ? !device.IsDefault : device.Name != AudioDevice.Value;
             return device.IsEnabled && device.IsInitialized && !isFallback;
