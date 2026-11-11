@@ -6,7 +6,7 @@ joining and sample format/rate conversion.
 
 
 Requirements
-============
+------------
 BASSASIO requires a soundcard with ASIO drivers installed, and an
 SSE-supporting CPU.
 
@@ -15,7 +15,7 @@ for decoding purposes, to apply DSP/FX, etc.
 
 
 Using BASSASIO
-==============
+--------------
 C/C++, Visual Basic and Delphi APIs and example projects are provided. To use
 BASSASIO with another language you will first have to convert the header file.
 Or you could use LoadLibrary and GetProcAddress.
@@ -52,7 +52,7 @@ VBStrFromAnsiPtr function to convert the returned pointer into a VB string.
 
 
 Included files
-==============
+--------------
 BASSASIO.TXT    This file
 BASSASIO.DLL    32-bit BASSASIO module
 BASSASIO.CHM    BASSASIO documentation
@@ -132,17 +132,17 @@ NOTE: To build the examples, you will need to copy the BASS API into the same
 
 NOTE: The Delphi and VB examples may not always be up to date with the C
       examples, so the latter should be preferred as references if possible.
-      
+
 
 Latest Version
-==============
+--------------
 The latest version of BASSASIO can be found at the BASSASIO website:
 
 	www.un4seen.com
 
 
 Licence
-=======
+-------
 BASSASIO is free for non-commercial use. If you are a non-commercial entity
 (eg. an individual) and you are not making any money from your product
 (through sales/advertising/etc), then you can use BASSASIO in it for free.
@@ -182,7 +182,7 @@ creating products with BASSASIO at 2 sites/locations, then 2 licences are
 required.
 
 Please note the products must be end-user products, eg. not components used by
-other products. 
+other products.
 
 These licences only cover your own software, not the publishing of other's
 software. If you publish other's software, its developers (or the software
@@ -204,7 +204,7 @@ Visit the BASSASIO website for the latest pricing:
 
 
 History
-=======
+-------
 These are the major (and not so major) changes in each release, along with the
 functions/options that are introduced/affected by them. There are other little
 tweaks and fixes made along the way too.
@@ -332,7 +332,6 @@ tweaks and fixes made along the way too.
 
 
 Bug reports, Suggestions, Comments, Enquiries, etc
-==================================================
+--------------------------------------------------
 If you have any of the aforementioned, please visit the BASS forum at the
 website.
-
