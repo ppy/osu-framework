@@ -1893,6 +1893,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Generates the <see cref="DrawNode"/> for ourselves.
         /// </summary>
+        /// <remarks>
+        /// If overriding, ensure to set <see cref="CompositeDrawable.CanBeFlattened"/> appropriately.
+        /// </remarks>
         /// <param name="frame">The frame which the <see cref="DrawNode"/> sub-tree should be generated for.</param>
         /// <param name="treeIndex">The index of the <see cref="DrawNode"/> to use.</param>
         /// <param name="forceNewDrawNode">Whether the creation of a new <see cref="DrawNode"/> should be forced, rather than re-using an existing <see cref="DrawNode"/>.</param>

@@ -430,7 +430,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     {
                         RelativeSizeAxes = Axes.X,
                         Height = 1000,
-                        Child = new Container
+                        Child = new NonFlattenedContainer
                         {
                             RelativeSizeAxes = Axes.X,
                             Height = 128,
@@ -529,6 +529,11 @@ namespace osu.Framework.Tests.Visual.Drawables
                 if (!AllowLoad.Wait(TimeSpan.FromSeconds(10)))
                     throw new TimeoutException();
             }
+        }
+
+        private partial class NonFlattenedContainer : Container
+        {
+            protected override bool CanBeFlattened => false;
         }
     }
 }
