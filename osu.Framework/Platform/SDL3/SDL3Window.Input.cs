@@ -537,6 +537,23 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
 
+        private void handlePenProximityEvent(SDL_PenProximityEvent evtPenProximity)
+        {
+            switch (evtPenProximity.type)
+            {
+                case SDL_EventType.SDL_EVENT_PEN_PROXIMITY_IN:
+                    pensInWindow++;
+                    break;
+
+                case SDL_EventType.SDL_EVENT_PEN_PROXIMITY_OUT:
+                    pensInWindow--;
+                    break;
+            }
+
+            Debug.Assert(pensInWindow >= 0);
+            updateCursorInWindow();
+        }
+
         private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
         {
             var deviceType = evtPenMotion.device_type.ToTabletPenDeviceType();
@@ -660,16 +677,6 @@ namespace osu.Framework.Platform.SDL3
         }
 
         #region Events
-
-        /// <summary>
-        /// Invoked when the mouse cursor enters the window.
-        /// </summary>
-        public event Action? MouseEntered;
-
-        /// <summary>
-        /// Invoked when the mouse cursor leaves the window.
-        /// </summary>
-        public event Action? MouseLeft;
 
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
