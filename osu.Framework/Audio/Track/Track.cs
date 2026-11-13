@@ -19,7 +19,7 @@ namespace osu.Framework.Audio.Track
 
         public virtual bool IsDummyDevice => true;
 
-        public double RestartPoint { get; set; }
+        public virtual double RestartPoint { get; set; }
 
         public virtual bool Looping { get; set; }
 
