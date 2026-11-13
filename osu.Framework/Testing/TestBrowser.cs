@@ -246,7 +246,7 @@ namespace osu.Framework.Testing
                                                     },
                                                     t => t,
                                                     (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
-                                                ).OrderBy(g => g.Name)
+                                                ).OrderBy(g => g.Name, StringComparer.Ordinal)
                                                 .Select(t => new TestGroupButton(type => LoadTest(type), t)));
         }
 

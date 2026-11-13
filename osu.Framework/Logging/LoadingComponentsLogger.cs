@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Development;
@@ -38,7 +39,7 @@ namespace osu.Framework.Logging
             {
                 Logger.Log($"⏳ Currently loading components ({loading_components.Count()})");
 
-                foreach (var c in loading_components.OrderBy(c => c.LoadThread?.Name).ThenBy(c => c.LoadState))
+                foreach (var c in loading_components.OrderBy(c => c.LoadThread?.Name, StringComparer.Ordinal).ThenBy(c => c.LoadState))
                 {
                     Logger.Log(c.ToString());
                     Logger.Log($"- thread: {c.LoadThread?.Name ?? "none"}");

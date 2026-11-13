@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Globalization;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -66,7 +67,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            volumeSlider.Current.BindValueChanged(e => volumeText.Text = e.NewValue.ToString("0%"), true);
+            volumeSlider.Current.BindValueChanged(e => volumeText.Text = e.NewValue.ToString("0%", CultureInfo.CurrentCulture), true);
             clickableReset.Action = () => volumeSlider.Current.Value = 0.25f;
         }
     }

@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -596,10 +597,10 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 base.Update();
                 double time = wrapping.Time.Current;
-                minTimeText.Text = wrapping.MinTime.ToString("n0");
-                currentTimeText.Text = time.ToString("n0");
+                minTimeText.Text = wrapping.MinTime.ToString("n0", CultureInfo.InvariantCulture);
+                currentTimeText.Text = time.ToString("n0", CultureInfo.InvariantCulture);
                 seekingTick.X = currentTimeText.X = (float)(time / (wrapping.MaxTime - wrapping.MinTime));
-                maxTimeText.Text = wrapping.MaxTime.ToString("n0");
+                maxTimeText.Text = wrapping.MaxTime.ToString("n0", CultureInfo.InvariantCulture);
                 maxTimeText.Colour = time > wrapping.MaxTime ? Color4.Gray : wrapping.Time.Elapsed > 0 ? Color4.Blue : Color4.Red;
                 minTimeText.Colour = time < wrapping.MinTime ? Color4.Gray : content.Time.Elapsed > 0 ? Color4.Blue : Color4.Red;
 

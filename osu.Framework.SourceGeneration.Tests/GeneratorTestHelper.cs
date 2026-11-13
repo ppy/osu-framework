@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -29,10 +30,10 @@ namespace osu.Framework.SourceGeneration.Tests
                 sb.AppendLine("Expected no diagnostics, but found:");
 
                 foreach (var d in compilationDiagnostics)
-                    sb.AppendLine($"Compilation: {d}");
+                    sb.AppendLine(CultureInfo.InvariantCulture, $"Compilation: {d}");
 
                 foreach (var d in generatorDiagnostics)
-                    sb.AppendLine($"Generator: {d}");
+                    sb.AppendLine(CultureInfo.InvariantCulture, $"Generator: {d}");
 
                 throw new Xunit.Sdk.XunitException(sb.ToString());
             }

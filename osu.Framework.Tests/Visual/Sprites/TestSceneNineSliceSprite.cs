@@ -168,7 +168,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             private void textBoxOnCommit(TextBox textBox, bool newText)
             {
-                if (float.TryParse(textBox.Text, out float value))
+                if (float.TryParse(textBox.Text, CultureInfo.InvariantCulture, out float value))
                     insetValue.Value = value;
                 else
                     textBox.Text = insetValue.Value.ToString(CultureInfo.InvariantCulture);

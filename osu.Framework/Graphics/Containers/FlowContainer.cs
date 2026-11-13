@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Containers
         {
             OnLayout?.Invoke();
 
-            if (!Children.Any())
+            if (Children.Count == 0)
                 return;
 
             int processedCount = 0;
