@@ -170,6 +170,11 @@ namespace osu.Framework.Graphics.Rendering
         bool IsInitialised { get; }
 
         /// <summary>
+        /// The current blending parameters.
+        /// </summary>
+        BlendingParameters CurrentBlendingParameters { get; }
+
+        /// <summary>
         /// Performs a once-off initialisation of this <see cref="IRenderer"/>.
         /// </summary>
         protected internal void Initialise(IGraphicsSurface graphicsSurface);
@@ -259,6 +264,12 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="blendingMask">The blending mask.</param>
         void SetBlendMask(BlendingMask blendingMask);
+
+        /// <summary>
+        /// Sets whether the currently bound texture has premultiplied alpha.
+        /// </summary>
+        /// <param name="hasPremultipliedAlpha">Whether the currently bound texture has premultiplied alpha.</param>
+        void SetTextureHasPremultipliedAlpha(bool hasPremultipliedAlpha);
 
         /// <summary>
         /// Applies a new viewport rectangle.

@@ -10,6 +10,7 @@ namespace osu.Framework.Graphics.Rendering
         FinishFrame,
         SetBlend,
         SetBlendMask,
+        SetTextureHasPremultipliedAlpha,
         SetDepthInfo,
         SetFrameBuffer,
         SetMasking,

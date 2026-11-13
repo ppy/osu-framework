@@ -26,7 +26,11 @@ void main(void)
 {
     mediump float dstFromEdge = texture(sampler2D(m_Texture, m_Sampler), v_TexCoord).r;
     lowp vec4 pathCol = texture(sampler2D(m_Texture1, m_Sampler1), TexRect1.xy + vec2(dstFromEdge, 0.0) * TexRect1.zw, -0.9);
-    o_Colour = getRoundedColor(vec4(pathCol.rgb, pathCol.a * float(dstFromEdge > 0.0)), v_TexCoord);
+
+    if (!g_TextureHasPremultipliedAlpha)
+        pathCol = premul(pathCol);
+
+    o_Colour = getRoundedColor(pathCol * float(dstFromEdge > 0.0), v_TexCoord);
 }
 
 #endif
