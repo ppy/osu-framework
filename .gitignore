@@ -351,3 +351,6 @@ osu.Framework.NativeLibs/scripts/ffmpeg/*.tar.gz
 .tools/
 osu.Framework/Native/PlutoSvgFt/deps/
 osu.Framework/Native/PlutoSvgFt/build/
+
+# Local colourize fixtures (drop PNGs here for TestSceneColorize)
+osu.Framework.Tests/Resources/Colouring/*.png

@@ -36,6 +36,8 @@ namespace osu.Framework.Tests.Shaders
 
             // ensure cached
             Assert.That(manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE), Is.SameAs(lookup1));
+
+            Assert.That(manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.COLORIZE), Is.Not.Null);
         }
 
         private class TestGLRenderer : GLRenderer

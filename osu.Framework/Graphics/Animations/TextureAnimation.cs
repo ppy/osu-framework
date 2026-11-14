@@ -3,9 +3,9 @@
 
 #nullable disable
 
-using osuTK;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osuTK;
 
 namespace osu.Framework.Graphics.Animations
 {
@@ -21,12 +21,19 @@ namespace osu.Framework.Graphics.Animations
         {
         }
 
-        public override Drawable CreateContent() => textureHolder = new Sprite
+        /// <summary>
+        /// Creates the sprite that displays the current frame. Override to swap in a custom <see cref="Sprite"/> subclass.
+        /// </summary>
+        protected virtual Sprite CreateSprite() => new Sprite();
+
+        public override Drawable CreateContent()
         {
-            RelativeSizeAxes = Axes.Both,
-            Anchor = Anchor.Centre,
-            Origin = Anchor.Centre,
-        };
+            textureHolder = CreateSprite();
+            textureHolder.RelativeSizeAxes = Axes.Both;
+            textureHolder.Anchor = Anchor.Centre;
+            textureHolder.Origin = Anchor.Centre;
+            return textureHolder;
+        }
 
         protected override void DisplayFrame(Texture content) => textureHolder.Texture = content;
 
