@@ -24,6 +24,7 @@ namespace osu.Framework.Graphics.Sprites
         All = 0,
         Gray = 1,
         KeepWhite = 2,
+        White = 3,
     }
 
     /// <summary>
@@ -34,6 +35,8 @@ namespace osu.Framework.Graphics.Sprites
         public const float DEFAULT_CHROMA_EPSILON = 1f / 255f;
         public const float DEFAULT_WHITE_LUMA = 0.92f;
         public const float DEFAULT_WHITE_CHROMA = 0.04f;
+
+        public const float DEFAULT_WHITE_TOLERANCE = 0f;
 
         private Colour4 tint = Colour4.White;
 
@@ -134,6 +137,29 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private float whiteTolerance = DEFAULT_WHITE_TOLERANCE;
+
+        /// <summary>
+        /// White range: 0–1 distance from RGB(1,1,1). 0 is exact white only; larger values mix near-white with a linear falloff.
+        /// </summary>
+        public float WhiteTolerance
+        {
+            get => whiteTolerance;
+            set
+            {
+                if (!float.IsFinite(value))
+                    throw new ArgumentException($"{nameof(WhiteTolerance)} must be finite, but is {value}.");
+
+                float clamped = Math.Clamp(value, 0f, 1f);
+
+                if (whiteTolerance == clamped)
+                    return;
+
+                whiteTolerance = clamped;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
@@ -157,6 +183,7 @@ namespace osu.Framework.Graphics.Sprites
             private float chromaEpsilon;
             private float whiteLuma;
             private float whiteChroma;
+            private float whiteTolerance;
 
             private IUniformBuffer<ColorizeParameters> parametersBuffer;
 
@@ -170,6 +197,7 @@ namespace osu.Framework.Graphics.Sprites
                 chromaEpsilon = Source.chromaEpsilon;
                 whiteLuma = Source.whiteLuma;
                 whiteChroma = Source.whiteChroma;
+                whiteTolerance = Source.whiteTolerance;
             }
 
             protected override void BindUniformResources(IShader shader, IRenderer renderer)
@@ -185,6 +213,7 @@ namespace osu.Framework.Graphics.Sprites
                     ChromaEpsilon = chromaEpsilon,
                     WhiteLuma = whiteLuma,
                     WhiteChroma = whiteChroma,
+                    WhiteTolerance = whiteTolerance,
                 };
 
                 shader.BindUniformBlock("m_ColorizeParameters", parametersBuffer);
@@ -205,7 +234,8 @@ namespace osu.Framework.Graphics.Sprites
                 public UniformFloat ChromaEpsilon;
                 public UniformFloat WhiteLuma;
                 public UniformFloat WhiteChroma;
-                private readonly UniformPadding12 pad;
+                public UniformFloat WhiteTolerance;
+                private readonly UniformPadding8 pad;
             }
         }
     }

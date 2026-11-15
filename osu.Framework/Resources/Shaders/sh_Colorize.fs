@@ -19,6 +19,7 @@ layout(std140, set = 0, binding = 0) uniform m_ColorizeParameters
     mediump float g_ChromaEpsilon;
     mediump float g_WhiteLuma;
     mediump float g_WhiteChroma;
+    mediump float g_WhiteTolerance;
 };
 
 layout(set = 1, binding = 0) uniform lowp texture2D m_Texture;
@@ -75,6 +76,16 @@ mediump float rangeMask(mediump vec3 straight)
     if (g_Range == 2)
         return (luma(straight) < g_WhiteLuma || ch > g_WhiteChroma) ? 1.0 : 0.0;
 
+    if (g_Range == 3)
+    {
+        mediump float deficit = 1.0 - min(min(straight.r, straight.g), straight.b);
+
+        if (g_WhiteTolerance <= 0.0)
+            return deficit <= 1.0e-6 ? 1.0 : 0.0;
+
+        return clamp(1.0 - deficit / g_WhiteTolerance, 0.0, 1.0);
+    }
+
     return 1.0;
 }
 
@@ -93,6 +104,9 @@ void main(void)
     mediump vec3 recoloured = g_Algorithm == 1
         ? setLum(g_Tint.rgb, luma(rgb))
         : rgb * g_Tint.rgb;
+
+    if (g_Range == 3 && g_Algorithm == 1)
+        recoloured = mix(recoloured, g_Tint.rgb, mask);
 
     rgb = mix(rgb, recoloured, mask);
 

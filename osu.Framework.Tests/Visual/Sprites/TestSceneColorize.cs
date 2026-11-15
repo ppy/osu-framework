@@ -44,10 +44,13 @@ namespace osu.Framework.Tests.Visual.Sprites
                     labelled("SetLum / Gray", createColorize(texture, ColorizeAlgorithm.SetLum, ColorizeRange.Gray)),
                     labelled("Multiply / KeepWhite", createColorize(texture, ColorizeAlgorithm.Multiply, ColorizeRange.KeepWhite)),
                     labelled("SetLum / KeepWhite", createColorize(texture, ColorizeAlgorithm.SetLum, ColorizeRange.KeepWhite)),
+                    labelled("Multiply / White", createColorize(texture, ColorizeAlgorithm.Multiply, ColorizeRange.White)),
+                    labelled("SetLum / White", createColorize(texture, ColorizeAlgorithm.SetLum, ColorizeRange.White)),
                 }
             };
 
             AddSliderStep("Hue", 0, 360, 0, h => applyTint(Colour4.FromHSV(h / 360f, 1f, 1f)));
+            AddSliderStep("White strength (8-bit)", 0, 255, 0, t => applyWhiteTolerance(t / 255f));
             applyTint(Colour4.Red);
         }
 
@@ -90,6 +93,12 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             foreach (var sprite in colorizeSprites)
                 sprite.Tint = tint;
+        }
+
+        private void applyWhiteTolerance(float tolerance)
+        {
+            foreach (var sprite in colorizeSprites)
+                sprite.WhiteTolerance = tolerance;
         }
 
         private static Texture createFixtureTexture(IRenderer renderer)
