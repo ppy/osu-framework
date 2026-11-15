@@ -259,13 +259,11 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, testInputManager.ScreenSpaceDrawQuad.Centre)));
-            AddAssert("ensure parent manager produced mouse", () =>
-                InputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left &&
-                InputManager.CurrentState.Mouse.Position == testInputManager.ScreenSpaceDrawQuad.Centre);
+            AddAssert("ensure parent manager produced press", () =>
+                InputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left);
 
-            AddAssert("pass-through did not produce mouse", () =>
-                !testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed &&
-                testInputManager.CurrentState.Mouse.Position != testInputManager.ScreenSpaceDrawQuad.Centre);
+            AddAssert("pass-through did not produce press", () =>
+                !testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed);
 
             AddStep("end touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, testInputManager.ScreenSpaceDrawQuad.Centre)));
 
@@ -328,6 +326,22 @@ namespace osu.Framework.Tests.Visual.Input
 
             AddAssert("inner box received 3 pen events", () => inner.PenEvents, () => Is.EqualTo(3));
             AddAssert("inner box received no mouse events", () => inner.MouseEvents, () => Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestInitialMousePositionSynced()
+        {
+            Vector2 immediateMousePosition = Vector2.Zero;
+
+            AddStep("move mouse to centre", () => InputManager.MoveMouseTo(InputManager.ScreenSpaceDrawQuad.Centre));
+            AddStep("load test input manager and immediately read mouse position", () =>
+            {
+                var testManager = new TestInputManager();
+                Add(testManager);
+                testManager.UpdateSubTree();
+                immediateMousePosition = testManager.CurrentState.Mouse.Position;
+            });
+            AddAssert("mouse position synced", () => immediateMousePosition, () => Is.EqualTo(InputManager.CurrentState.Mouse.Position));
         }
 
         public partial class TestInputManager : ManualInputManager

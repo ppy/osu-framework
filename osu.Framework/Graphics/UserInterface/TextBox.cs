@@ -103,20 +103,22 @@ namespace osu.Framework.Graphics.UserInterface
                 // discard control/special characters.
                 return false;
 
-            var currentNumberFormat = CultureInfo.CurrentCulture.NumberFormat;
-
-            switch (InputProperties.Type)
+            if (InputProperties.Type.IsNumerical())
             {
-                case TextInputType.Decimal:
-                    return char.IsAsciiDigit(character) || currentNumberFormat.NumberDecimalSeparator.Contains(character);
+                bool validNumericalCharacter = false;
 
-                case TextInputType.Number:
-                case TextInputType.NumericalPassword:
-                    return char.IsAsciiDigit(character);
+                var currentNumberFormat = CultureInfo.CurrentCulture.NumberFormat;
 
-                default:
-                    return true;
+                validNumericalCharacter |= char.IsAsciiDigit(character);
+                validNumericalCharacter |= selectionLeft == 0 && currentNumberFormat.NegativeSign.Contains(character);
+
+                if (InputProperties.Type == TextInputType.Decimal)
+                    validNumericalCharacter |= currentNumberFormat.NumberDecimalSeparator.Contains(character);
+
+                return validNumericalCharacter;
             }
+
+            return true;
         }
 
         private bool readOnly;
@@ -167,7 +169,7 @@ namespace osu.Framework.Graphics.UserInterface
         public event OnCommitHandler OnCommit;
 
         /// <summary>
-        /// Scheduler used for scheduling text input events coming from <see cref="textInput"/>.
+        /// Scheduler used for scheduling text input events, IME composition and result events coming from <see cref="textInput"/>.
         /// </summary>
         /// <remarks>
         /// Used for scheduling text events so that the <see cref="Text"/> is updated on the update thread.
@@ -178,11 +180,6 @@ namespace osu.Framework.Graphics.UserInterface
         ///  - Later in the same update frame, in <see cref="Update"/>. In case there was no associated key event. This is mostly required for mobile platforms.
         /// </remarks>
         private readonly Scheduler textInputScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
-
-        /// <summary>
-        /// Scheduler used for scheduling IME composition and result events coming from <see cref="textInput"/>.
-        /// </summary>
-        private readonly Scheduler imeCompositionScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
 
         protected TextBox()
         {
@@ -597,17 +594,17 @@ namespace osu.Framework.Graphics.UserInterface
             // and then call `onImeResult()`.
             // the composition being inactive and having scheduled tasks shouldn't happen,
             // but the check is here to cover that improbable edge case.
-            if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
+            if (!ImeCompositionActive && !textInputScheduler.HasPendingTasks)
                 return;
 
-            imeCompositionScheduler.Add(() => onImeResult(userEvent, false));
+            textInputScheduler.Add(() => onImeResult(userEvent, false));
 
             if (textInputBound)
                 textInput.ResetIme();
 
             // importantly, we want to force-update all pending composition events,
             // so that when we return control to the caller, those events won't mutate text and/or caret position.
-            imeCompositionScheduler.Update();
+            textInputScheduler.Update();
         }
 
         /// <summary>
@@ -617,14 +614,14 @@ namespace osu.Framework.Graphics.UserInterface
         protected void CancelImeComposition()
         {
             // same rationale as above, in `FinalizeImeComposition()`
-            if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
+            if (!ImeCompositionActive && !textInputScheduler.HasPendingTasks)
                 return;
 
             if (textInputBound)
                 textInput.ResetIme();
 
-            imeCompositionScheduler.Add(() => onImeComposition(string.Empty, 0, 0, false));
-            imeCompositionScheduler.Update(); // same rationale as above, in `FinalizeImeComposition()`
+            textInputScheduler.Add(() => onImeComposition(string.Empty, 0, 0, false));
+            textInputScheduler.Update(); // same rationale as above, in `FinalizeImeComposition()`
         }
 
         protected override void Dispose(bool isDisposing)
@@ -688,7 +685,6 @@ namespace osu.Framework.Graphics.UserInterface
             // update the schedulers before updating children as it might mutate TextFlow.
             // we want the character drawables to be up-to date for further calculations in `updateCursorAndLayout()`.
             textInputScheduler.Update();
-            imeCompositionScheduler.Update();
         }
 
         protected override void UpdateAfterChildren()
@@ -1308,7 +1304,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             FinalizeImeComposition(true);
 
-            if (ignoreOngoingDragSelection)
+            if (ignoreOngoingDragSelection || tripleClickOngoing)
                 return;
 
             var lastSelectionBounds = getTextSelectionBounds();
@@ -1349,8 +1345,12 @@ namespace osu.Framework.Graphics.UserInterface
             onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character, lastSelectionBounds);
         }
 
+        private double? lastDoubleClickTime;
+
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
+            lastDoubleClickTime = Time.Current;
+
             FinalizeImeComposition(true);
 
             var lastSelectionBounds = getTextSelectionBounds();
@@ -1396,6 +1396,8 @@ namespace osu.Framework.Graphics.UserInterface
             return -1;
         }
 
+        private bool tripleClickOngoing;
+
         protected override bool OnMouseDown(MouseDownEvent e)
         {
             if (ReadOnly)
@@ -1404,6 +1406,35 @@ namespace osu.Framework.Graphics.UserInterface
             FinalizeImeComposition(true);
 
             var lastSelectionBounds = getTextSelectionBounds();
+            int lastSelectionLength = selectionLength;
+
+            float tripleClickTime = GetContainingInputManager().AsNonNull().GetButtonEventManagerFor(e.Button).DoubleClickTime;
+
+            if (lastDoubleClickTime != null && Time.Current - lastDoubleClickTime < tripleClickTime)
+            {
+                lastDoubleClickTime = null;
+
+                SelectAll();
+
+                onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
+
+                tripleClickOngoing = true;
+
+                return true;
+            }
+
+            if (e.ShiftPressed)
+            {
+                selectionEnd = getCharacterClosestTo(e.MousePosition);
+
+                cursorAndLayout.Invalidate();
+
+                int selectionLengthDelta = Math.Abs(lastSelectionLength - selectionLength);
+
+                onTextSelectionChanged(selectionLengthDelta > 1 ? TextSelectionType.Word : TextSelectionType.Character, lastSelectionBounds);
+
+                return true;
+            }
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -1417,6 +1448,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void OnMouseUp(MouseUpEvent e)
         {
             doubleClickWord = null;
+            tripleClickOngoing = false;
         }
 
         protected override void OnFocusLost(FocusLostEvent e)
@@ -1509,7 +1541,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             textInputBlocking = true;
 
-            InsertString(t);
+            insertString(t);
             OnUserTextAdded(t);
 
             // clear the flag in the next frame if no buttons are pressed/held.
@@ -1526,12 +1558,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {
-            imeCompositionScheduler.Add(() => onImeComposition(composition, selectionStart, selectionLength, true));
+            textInputScheduler.Add(() => onImeComposition(composition, selectionStart, selectionLength, true));
         }
 
         private void handleImeResult(string result)
         {
-            imeCompositionScheduler.Add(() =>
+            textInputScheduler.Add(() =>
             {
                 onImeComposition(result, result.Length, 0, false);
                 onImeResult(true, true);

@@ -16,7 +16,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -30,21 +29,22 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Deferred;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid;
+using osu.Framework.Graphics.Video;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
+using osu.Framework.IO.Serialization;
+using osu.Framework.IO.Stores;
+using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
+using osuTK;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Veldrid;
-using osu.Framework.Graphics.Video;
-using osu.Framework.IO.Serialization;
-using osu.Framework.IO.Stores;
-using osu.Framework.Localisation;
 using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
 
@@ -246,8 +246,7 @@ namespace osu.Framework.Platform
             thread.IsActive.BindTo(IsActive);
             thread.UnhandledException = unhandledExceptionHandler;
 
-            if (thread.Monitor != null)
-                thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
+            thread.Monitor?.EnablePerformanceProfiling = PerformanceLogging.Value;
         }
 
         /// <summary>
@@ -295,8 +294,7 @@ namespace osu.Framework.Platform
             set
             {
                 maximumDrawHz = value;
-                if (DrawThread != null)
-                    DrawThread.ActiveHz = maximumDrawHz;
+                DrawThread?.ActiveHz = maximumDrawHz;
             }
         }
 
@@ -315,8 +313,7 @@ namespace osu.Framework.Platform
             set
             {
                 threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = maximumInactiveHz = value;
-                if (DrawThread != null)
-                    DrawThread.InactiveHz = maximumInactiveHz;
+                DrawThread?.InactiveHz = maximumInactiveHz;
             }
         }
 
@@ -505,7 +502,10 @@ namespace osu.Framework.Platform
             if (Window.WindowState == WindowState.Minimised)
                 return;
 
-            Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
+            // Do *not* allow tearing when VRR enabled, not even in fullscreen via mechanisms like FifoRelaxed, to ensure we can pace
+            // the monitor's refresh cycle correctly.
+            bool isVrr = frameSyncMode.Value == FrameSync.VSyncVRR;
+            Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen && !isVrr;
 
             TripleBuffer<DrawNode>.Buffer buffer;
 
@@ -514,7 +514,8 @@ namespace osu.Framework.Platform
                 // Importantly, only wait on renderer frame availability if we actually rendered a frame since the last `WaitUntilNextFrameReady()`.
                 // Without this, the wait handle, internally used in the Veldrid-side implementation of `WaitUntilNextFrameReady()`,
                 // will potentially be in a bad state and take the timeout value (1 second) to recover.
-                if (didRenderFrame)
+                // Furthermore, don't wait when in VRR mode as we want to be the ones in control of pacing the monitor's refresh cycle.
+                if (didRenderFrame && !isVrr)
                     Renderer.WaitUntilNextFrameReady();
 
                 didRenderFrame = false;
@@ -579,7 +580,7 @@ namespace osu.Framework.Platform
         {
             Renderer.SwapBuffers();
 
-            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync)
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync && RuntimeInfo.OS != RuntimeInfo.Platform.Android)
                 // without waiting (i.e. glFinish), vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
                 Renderer.WaitUntilIdle();
@@ -921,7 +922,7 @@ namespace osu.Framework.Platform
                         case RendererType.OpenGL:
                             // Use the legacy GL renderer. This is basically guaranteed to support all platforms
                             // and performs better than the Veldrid-GL renderer due to reduction in allocs.
-                            SetupRendererAndWindow(new GLRenderer(), GraphicsSurfaceType.OpenGL);
+                            SetupRendererAndWindow(CreateGLRenderer(), GraphicsSurfaceType.OpenGL);
                             break;
 
                         case RendererType.Deferred_Metal:
@@ -1247,7 +1248,11 @@ namespace osu.Framework.Platform
             }, true);
 
             executionMode = Config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
-            executionMode.BindValueChanged(e => threadRunner.ExecutionMode = e.NewValue, true);
+            executionMode.BindValueChanged(e =>
+            {
+                threadRunner.ExecutionMode = e.NewValue;
+                updateFrameSyncMode();
+            }, true);
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += _ => updateFrameSyncMode();
@@ -1285,8 +1290,7 @@ namespace osu.Framework.Platform
             {
                 Threads.ForEach(t =>
                 {
-                    if (t.Monitor != null)
-                        t.Monitor.EnablePerformanceProfiling = logging.NewValue;
+                    t.Monitor?.EnablePerformanceProfiling = logging.NewValue;
                 });
                 DebugUtils.LogPerformanceIssues = logging.NewValue;
                 TypePerformanceMonitor.Active = logging.NewValue;
@@ -1307,11 +1311,6 @@ namespace osu.Framework.Platform
             }, true);
 
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
-
-#pragma warning disable CS0612 // Type or member is obsolete
-            if (Config.Get<RendererType>(FrameworkSetting.Renderer) == RendererType.OpenGLLegacy)
-                Config.SetValue(FrameworkSetting.Renderer, RendererType.OpenGL);
-#pragma warning restore CS0612 // Type or member is obsolete
         }
 
         /// <summary>
@@ -1334,14 +1333,14 @@ namespace osu.Framework.Platform
             if (Window == null)
                 return;
 
-            int refreshRate = (int)MathF.Round(Window.CurrentDisplayMode.Value.RefreshRate);
+            double refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
 
             // For invalid refresh rates let's assume 60 Hz as it is most common.
             if (refreshRate <= 0)
                 refreshRate = 60;
 
-            int drawLimiter = refreshRate;
-            int updateLimiter = drawLimiter * 2;
+            double drawLimiter = refreshRate;
+            double updateLimiter = drawLimiter * 2;
 
             setVSyncMode();
 
@@ -1350,6 +1349,14 @@ namespace osu.Framework.Platform
                 case FrameSync.VSync:
                     drawLimiter = int.MaxValue;
                     updateLimiter *= 2;
+                    break;
+
+                case FrameSync.VSyncVRR:
+                    // If VRR is enabled, cap FPS slightly *below* the refresh rate to avoid the FIFO filling up which would cause
+                    // significant latency. Note that this optimization is *only* possible on VRR displays because it would cause
+                    // periodic stutters on fixed refresh rate displays.
+                    drawLimiter = Math.Min(refreshRate * 0.985, Math.Max(refreshRate - 2, 0));
+                    updateLimiter = drawLimiter * 4;
                     break;
 
                 case FrameSync.Limit2x:
@@ -1380,14 +1387,14 @@ namespace osu.Framework.Platform
             }
 
             MaximumDrawHz = drawLimiter;
-            MaximumUpdateHz = updateLimiter;
+            MaximumUpdateHz = executionMode.Value == ExecutionMode.SingleThread ? drawLimiter : updateLimiter;
         }
 
         private void setVSyncMode()
         {
             if (Window == null) return;
 
-            DrawThread.Scheduler.Add(() => Renderer.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
+            DrawThread.Scheduler.Add(() => Renderer.VerticalSync = frameSyncMode.Value == FrameSync.VSync || frameSyncMode.Value == FrameSync.VSyncVRR);
         }
 
         /// <summary>

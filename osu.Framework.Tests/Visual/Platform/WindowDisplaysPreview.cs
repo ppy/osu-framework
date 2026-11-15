@@ -7,6 +7,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -27,6 +28,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly Container paddedContainer;
         private readonly Container screenContainer;
         private readonly Container windowContainer;
+        private readonly Container? borderContainer;
         private Vector2 screenContainerOffset;
 
         private static readonly Color4 active_fill = new Color4(255, 138, 104, 255);
@@ -35,13 +37,18 @@ namespace osu.Framework.Tests.Visual.Platform
         private static readonly Color4 screen_stroke = new Color4(244, 137, 25, 255);
         private static readonly Color4 window_fill = new Color4(95, 113, 197, 255);
         private static readonly Color4 window_stroke = new Color4(36, 59, 166, 255);
+        private static readonly Color4 window_border_fill = new Color4(85, 207, 89, 200);
+        private static readonly Color4 window_border_stroke = new Color4(50, 122, 53, 255);
 
         private IWindow? window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
         private readonly Bindable<Display> currentDisplay = new Bindable<Display>();
 
-        public WindowDisplaysPreview()
+        private readonly bool showDisplayUsableBounds;
+
+        public WindowDisplaysPreview(bool showDisplayUsableBounds = false, bool showWindowBorder = false)
         {
+            this.showDisplayUsableBounds = showDisplayUsableBounds;
             Child = new Container
             {
                 RelativeSizeAxes = Axes.Both,
@@ -85,6 +92,22 @@ namespace osu.Framework.Tests.Visual.Platform
                     }
                 }
             };
+
+            if (showWindowBorder)
+            {
+                screenContainer.Add(borderContainer = new Container
+                {
+                    BorderColour = window_border_stroke,
+                    BorderThickness = 20,
+                    Masking = true,
+                    Depth = -5,
+                    Child = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = window_border_fill
+                    }
+                });
+            }
         }
 
         [BackgroundDependencyLoader]
@@ -110,13 +133,13 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private void refreshScreens(IEnumerable<Display> displays)
         {
-            screenContainer.RemoveAll(d => d != windowContainer, false);
+            screenContainer.RemoveAll(d => d != windowContainer && d != borderContainer, false);
 
             var bounds = new RectangleI();
 
             foreach (var display in displays)
             {
-                screenContainer.Add(createScreen(display, window.AsNonNull().CurrentDisplayBindable.Value.Index));
+                screenContainer.AddRange(createScreen(display, window.AsNonNull().CurrentDisplayBindable.Value.Index));
                 bounds = RectangleI.Union(bounds, new RectangleI(display.Bounds.X, display.Bounds.Y, display.Bounds.Width, display.Bounds.Height));
             }
 
@@ -130,11 +153,11 @@ namespace osu.Framework.Tests.Visual.Platform
             screenContainer.Size = bounds.Size;
         }
 
-        private Container createScreen(Display display, int activeDisplayIndex)
+        private IEnumerable<Container> createScreen(Display display, int activeDisplayIndex)
         {
             bool isActive = display.Index == activeDisplayIndex;
 
-            return new Container
+            yield return new Container
             {
                 X = display.Bounds.X,
                 Y = display.Bounds.Y,
@@ -166,6 +189,30 @@ namespace osu.Framework.Tests.Visual.Platform
                     }
                 }
             };
+
+            if (showDisplayUsableBounds)
+            {
+                yield return new Container
+                {
+                    X = display.UsableBounds.X,
+                    Y = display.UsableBounds.Y,
+                    Width = display.UsableBounds.Width,
+                    Height = display.UsableBounds.Height,
+
+                    BorderColour = isActive ? Color4.MediumPurple : Color4.Green,
+                    BorderThickness = 20,
+                    Masking = true,
+
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = (isActive ? Color4.MediumPurple : Color4.Green).Opacity(0.2f)
+                        },
+                    }
+                };
+            }
         }
 
         private string modeName(DisplayMode mode) => $"{mode.Size.Width}x{mode.Size.Height}@{mode.RefreshRate}";
@@ -183,6 +230,17 @@ namespace osu.Framework.Tests.Visual.Platform
             windowContainer.Height = fullscreen ? currentBounds.Height : window.Size.Height;
             windowContainer.Position -= screenContainerOffset;
             windowCaption.Text = $"{windowMode}\nSize: {window.Size.Width}x{window.Size.Height}\nClient: {window.ClientSize.Width}x{window.ClientSize.Height}";
+
+            if (borderContainer != null)
+            {
+                var borderSize = window.BorderSize.Value;
+
+                borderContainer.X = window.Position.X - borderSize.Left;
+                borderContainer.Y = window.Position.Y - borderSize.Top;
+                borderContainer.Width = windowContainer.Width + borderSize.TotalHorizontal;
+                borderContainer.Height = windowContainer.Height + borderSize.TotalVertical;
+                borderContainer.Position -= screenContainerOffset;
+            }
         }
 
         protected override void Update()

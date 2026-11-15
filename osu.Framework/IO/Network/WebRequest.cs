@@ -68,8 +68,6 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public Stream ResponseStream { get; private set; }
 
-        public HttpResponseHeaders ResponseHeaders => response.Headers;
-
         /// <summary>
         /// The URL of this request.
         /// </summary>
@@ -140,21 +138,12 @@ namespace osu.Framework.IO.Network
         private bool completed;
 
         private static readonly HttpClient client = new HttpClient(
-            // SocketsHttpHandler causes crash in Android Debug, and seems to have compatibility issue on SSL
-            // Use platform HTTP handler which is invoked by HttpClientHandler for better compatibility and app size
-            RuntimeInfo.OS == RuntimeInfo.Platform.Android
-                ? new HttpClientHandler
-                {
-                    Credentials = CredentialCache.DefaultCredentials,
-                    AutomaticDecompression = DecompressionMethods.All
-                }
-                : new SocketsHttpHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.All,
-                    // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
-                    Credentials = CredentialCache.DefaultCredentials,
-                    ConnectCallback = onConnect,
-                }
+            new SocketsHttpHandler
+            {
+                AutomaticDecompression = DecompressionMethods.All,
+                DefaultProxyCredentials = RuntimeInfo.OS == RuntimeInfo.Platform.Windows ? CredentialCache.DefaultCredentials : null,
+                ConnectCallback = onConnect,
+            }
         )
         {
             // Timeout is controlled manually through cancellation tokens because
@@ -251,6 +240,19 @@ namespace osu.Framework.IO.Network
                 return null;
             }
         }
+
+        /// <summary>
+        /// The headers in the response received.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </summary>
+        [CanBeNull]
+        public HttpResponseHeaders ResponseHeaders => response?.Headers;
+
+        /// <summary>
+        /// The status code of the response.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </summary>
+        public HttpStatusCode? ResponseStatusCode => response?.StatusCode;
 
         protected virtual Stream CreateOutputStream() => new MemoryStream();
 
@@ -501,13 +503,46 @@ namespace osu.Framework.IO.Network
             if (Aborted)
                 return Task.CompletedTask;
 
-            var we = e as WebException;
-
-            bool allowRetry = AllowRetryOnTimeout;
             bool wasTimeout = false;
+            bool wasMacOSNetworkBlock = false;
 
             if (e != null)
-                wasTimeout = we?.Status == WebExceptionStatus.Timeout;
+            {
+                switch (e)
+                {
+                    case WebException we:
+                        wasTimeout = we.Status == WebExceptionStatus.Timeout;
+                        break;
+
+                    case HttpRequestException hre:
+                    {
+                        // this is an extremely specific code path covering an obfuscated, but common enough failure mode on macOS.
+                        // the prerequisites for the failure mode in question appear to be:
+                        // - user is on macOS
+                        // - user is on a network that does not support IPv6
+                        // - user has a Screen Time filter enabled
+                        // in these circumstances, all outgoing IPv6 requests will be dropped with socket error 56 ("Connection reset by peer") near instantly.
+                        // it is nigh impossible to understand *why* this behaviour takes place, but it is reproducible across many domains and many HTTP clients
+                        // (for one instance, this same behaviour was observed when attempting to access google.com through its IPv6 address via curl).
+                        // the specificity of this failure mode is not that high, this could very well trigger in other circumstances, too -
+                        // but there is no more signal to use to distinguish this failure mode any further.
+                        // the hopes are that when IPv6 fallback gets implemented upstream in dotnet itself much of this can hopefully go away.
+                        if (useIPv6
+                            && RuntimeInfo.OS == RuntimeInfo.Platform.macOS
+                            && hre.HttpRequestError == HttpRequestError.SecureConnectionError
+                            && hre.InnerException is IOException ioe
+                            && ioe.InnerException is SocketException se
+                            && se.SocketErrorCode == SocketError.ConnectionReset)
+                        {
+                            logger.Add("Disabling IPv6 support due to suspicion of active Screen Time network filter dropping all IPv6 requests.");
+                            useIPv6 = false;
+                            wasMacOSNetworkBlock = true;
+                        }
+
+                        break;
+                    }
+                }
+            }
             else if (!response.IsSuccessStatusCode)
             {
                 e = new WebException(response.StatusCode.ToString());
@@ -521,7 +556,7 @@ namespace osu.Framework.IO.Network
                 }
             }
 
-            allowRetry &= wasTimeout;
+            bool allowRetry = (wasTimeout && AllowRetryOnTimeout) || wasMacOSNetworkBlock;
 
             if (e != null)
             {

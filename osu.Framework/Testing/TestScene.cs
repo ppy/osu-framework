@@ -344,7 +344,7 @@ namespace osu.Framework.Testing
             });
         }
 
-        protected void AddUntilStep<T>([CanBeNull] string description, [NotNull] ActualValueDelegate<T> actualValue, [NotNull] Func<IResolveConstraint> constraint)
+        protected void AddUntilStep<T>([CanBeNull] string description, [NotNull] Func<T> actualValue, [NotNull] Func<IResolveConstraint> constraint)
         {
             ConstraintResult lastResult = null;
 
@@ -391,6 +391,17 @@ namespace osu.Framework.Testing
             });
         }
 
+        protected void AddColourPickerStep([NotNull] string description, Colour4 initial, Action<Colour4> valueChanged)
+        {
+            schedule(() =>
+            {
+                StepsContainer.Add(new StepColourPicker(description, initial)
+                {
+                    ValueChanged = valueChanged,
+                });
+            });
+        }
+
         protected void AddAssert([NotNull] string description, [NotNull] Func<bool> assert, [CanBeNull] string extendedDescription = null)
         {
             AddStep(new AssertButton
@@ -403,7 +414,7 @@ namespace osu.Framework.Testing
             });
         }
 
-        protected void AddAssert<T>([NotNull] string description, [NotNull] ActualValueDelegate<T> actualValue, [NotNull] Func<IResolveConstraint> constraint,
+        protected void AddAssert<T>([NotNull] string description, [NotNull] Func<T> actualValue, [NotNull] Func<IResolveConstraint> constraint,
                                     [CanBeNull] string extendedDescription = null)
         {
             ConstraintResult lastResult = null;

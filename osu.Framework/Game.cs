@@ -149,8 +149,18 @@ namespace osu.Framework
         {
             Host = host;
             host.ExitRequested += RequestExit;
-            host.Activated += () => isActive.Value = true;
-            host.Deactivated += () => isActive.Value = false;
+            host.Activated += onHostActivated;
+            host.Deactivated += onHostDeactivated;
+        }
+
+        private void onHostActivated()
+        {
+            isActive.Value = true;
+        }
+
+        private void onHostDeactivated()
+        {
+            isActive.Value = false;
         }
 
         private DependencyContainer dependencies;
@@ -178,17 +188,11 @@ namespace osu.Framework
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(CreateOnlineStore());
 
-            Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
+            Audio = new AudioManager(Host.AudioThread, tracks, samples, config) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
 
             dependencies.CacheAs(Audio.Tracks);
             dependencies.CacheAs(Audio.Samples);
-
-            // attach our bindables to the audio subsystem.
-            config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
-            config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
-            config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
-            config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
 
             Shaders = new ShaderManager(Host.Renderer, new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
@@ -516,6 +520,13 @@ namespace osu.Framework
 
             Localisation?.Dispose();
             Localisation = null;
+
+            if (Host != null)
+            {
+                Host.ExitRequested -= RequestExit;
+                Host.Activated -= onHostActivated;
+                Host.Deactivated -= onHostDeactivated;
+            }
         }
 
         private partial class FrameStatisticsTouchReceptor : Drawable

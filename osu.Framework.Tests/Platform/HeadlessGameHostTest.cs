@@ -16,6 +16,7 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.Platform
 {
     [TestFixture]
+    [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
     public partial class HeadlessGameHostTest
     {
         [Test]
@@ -68,7 +69,7 @@ namespace osu.Framework.Tests.Platform
                 var task = Task.Factory.StartNew(() =>
                 {
                     var game = new TestGame();
-                    game.Scheduler.Add(() => host.Exit());
+                    game.Scheduler.Add(host.Exit);
 
                     host.Run(game);
 

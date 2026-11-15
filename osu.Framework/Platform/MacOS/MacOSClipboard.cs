@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using osu.Framework.Platform.Apple;
 using osu.Framework.Platform.Apple.Native;
 using osu.Framework.Platform.MacOS.Native;
 using SixLabors.ImageSharp;
@@ -21,11 +22,15 @@ namespace osu.Framework.Platform.MacOS
 
         public override Image<TPixel>? GetImage<TPixel>()
         {
-            var nsImage = new NSImage(getFromPasteboard(Class.Get("NSImage")));
-            if (nsImage.Handle == IntPtr.Zero)
-                return null;
+            using (NSAutoreleasePool.Init())
+            {
+                var nsImage = new NSImage(getFromPasteboard(Class.Get("NSImage")));
+                if (nsImage.Handle == IntPtr.Zero)
+                    return null;
 
-            return Image.Load<TPixel>(nsImage.TiffRepresentation.ToBytes());
+                var cgImage = nsImage.CGImage;
+                return AppleTextureLoaderStore.ImageFromCGImage<TPixel>(cgImage);
+            }
         }
 
         public override void SetText(string text) => setToPasteboard(NSString.FromString(text).Handle);

@@ -114,6 +114,21 @@ namespace osu.Framework.Graphics.Veldrid
             return writeMask;
         }
 
+        public static PixelFormat ToPixelFormat(this TexturePixelFormat texturePixelFormat)
+        {
+            switch (texturePixelFormat)
+            {
+                case TexturePixelFormat.R8G8B8A8Float:
+                    return PixelFormat.R8G8B8A8UNorm;
+
+                case TexturePixelFormat.R16Float:
+                    return PixelFormat.R16Float;
+
+                default:
+                    throw new ArgumentException($"Unsupported render buffer format: {texturePixelFormat}", nameof(texturePixelFormat));
+            }
+        }
+
         public static PixelFormat[] ToPixelFormats(this RenderBufferFormat[] renderBufferFormats)
         {
             var pixelFormats = new PixelFormat[renderBufferFormats.Length];
@@ -351,12 +366,12 @@ namespace osu.Framework.Graphics.Veldrid
 
             var info = device.GetD3D11Info();
             var dxgiAdapter = MarshallingHelpers.FromPointer<IDXGIAdapter>(info.Adapter).AsNonNull();
-            var d3d11Device = MarshallingHelpers.FromPointer<ID3D11Device>(info.Device).AsNonNull();
+            var d3D11Device = MarshallingHelpers.FromPointer<ID3D11Device>(info.Device).AsNonNull();
 
             maxTextureSize = ID3D11Resource.MaximumTexture2DSize;
 
             Logger.Log($@"Direct3D 11 Initialized
-                        Direct3D 11 Feature Level:           {d3d11Device.FeatureLevel.ToString().Replace("Level_", string.Empty).Replace("_", ".")}
+                        Direct3D 11 Feature Level:           {d3D11Device.FeatureLevel.ToString().Replace("Level_", string.Empty).Replace("_", ".")}
                         Direct3D 11 Adapter:                 {dxgiAdapter.Description.Description}
                         Direct3D 11 Dedicated Video Memory:  {dxgiAdapter.Description.DedicatedVideoMemory / 1024 / 1024} MB
                         Direct3D 11 Dedicated System Memory: {dxgiAdapter.Description.DedicatedSystemMemory / 1024 / 1024} MB

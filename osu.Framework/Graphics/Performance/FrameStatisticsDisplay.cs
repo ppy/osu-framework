@@ -425,6 +425,9 @@ namespace osu.Framework.Graphics.Performance
                 default:
                     return Color4.YellowGreen;
 
+                case PerformanceCollectionType.GC:
+                    return Color4.Orange;
+
                 case PerformanceCollectionType.SwapBuffer:
                     return Color4.Red;
 #if DEBUG

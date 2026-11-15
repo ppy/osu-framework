@@ -28,8 +28,8 @@ namespace osu.Framework.Graphics.Containers
     public partial class BufferedContainer : BufferedContainer<Drawable>
     {
         /// <inheritdoc />
-        public BufferedContainer(RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
-            : base(formats, pixelSnapping, cachedFrameBuffer)
+        public BufferedContainer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
+            : base(textureFormat, formats, pixelSnapping, cachedFrameBuffer)
         {
         }
     }
@@ -193,6 +193,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private float grayscaleStrength;
+
+        public float GrayscaleStrength
+        {
+            get => grayscaleStrength;
+            set
+            {
+                if (grayscaleStrength == value)
+                    return;
+
+                grayscaleStrength = value;
+                ForceRedraw();
+            }
+        }
+
         /// <summary>
         /// Whether the rendered framebuffer is being cached until <see cref="ForceRedraw"/> is called
         /// or the size of the container (i.e. framebuffer) changes.
@@ -237,12 +252,14 @@ namespace osu.Framework.Graphics.Containers
         public IShader TextureShader { get; private set; }
 
         private IShader blurShader;
+        private IShader grayscaleShader;
 
         private readonly BufferedContainerDrawNodeSharedData sharedData;
 
         /// <summary>
         /// Constructs an empty buffered container.
         /// </summary>
+        /// <param name="textureFormat">The main render buffer format.</param>
         /// <param name="formats">The render buffer formats attached to the frame buffer of this <see cref="BufferedContainer"/>.</param>
         /// <param name="pixelSnapping">
         /// Whether the frame buffer position should be snapped to the nearest pixel when blitting.
@@ -253,11 +270,11 @@ namespace osu.Framework.Graphics.Containers
         /// or the size of the container (i.e. frame buffer) changes.
         /// When disabled, drawing will be clipped to the game window bounds. Enabling can allow drawing larger than (or outside) the game window bounds.
         /// </param>
-        public BufferedContainer(RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
+        public BufferedContainer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
         {
             UsingCachedFrameBuffer = cachedFrameBuffer;
 
-            sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping, !cachedFrameBuffer);
+            sharedData = new BufferedContainerDrawNodeSharedData(textureFormat, formats, pixelSnapping, !cachedFrameBuffer);
 
             AddLayout(screenSpaceSizeBacking);
         }
@@ -267,6 +284,7 @@ namespace osu.Framework.Graphics.Containers
         {
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
+            grayscaleShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.GRAYSCALE);
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);

@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
+using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 
@@ -141,6 +142,41 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 topLevelContainer.RelativeSizeAxes = textContainer.RelativeSizeAxes = Axes.None;
                 topLevelContainer.AutoSizeAxes = textContainer.AutoSizeAxes = Axes.Both;
+            });
+            AddStep("set autosize width with right anchored text", () =>
+            {
+                topLevelContainer.RelativeSizeAxes = textContainer.RelativeSizeAxes = Axes.None;
+                topLevelContainer.AutoSizeAxes = textContainer.AutoSizeAxes = Axes.Both;
+                textContainer.TextAnchor = Anchor.TopRight;
+            });
+        }
+
+        [Test]
+        public void TestSetTextRepeatedly()
+        {
+            ScheduledDelegate repeat = null!;
+            AddStep("set text repeatedly", () => repeat = Scheduler.AddDelayed(() =>
+            {
+                textContainer.Clear();
+                textContainer.AddParagraph("first paragraph lorem ipsum dolor sit amet and whatever else is needed to break a line");
+                textContainer.AddParagraph(string.Empty);
+                textContainer.AddParagraph("second paragraph lorem ipsum dolor sit amet and whatever else is needed to break a line");
+            }, 50, true));
+            AddStep("cancel", () => repeat.Cancel());
+        }
+
+        [TestCase(Anchor.TopLeft)]
+        [TestCase(Anchor.Centre)]
+        [TestCase(Anchor.BottomRight)]
+        public void TestAlignmentIsCorrectWhenLineBreaksAtLastWordOfParagraph(Anchor textAnchor)
+        {
+            AddStep("set text to break at last word of paragraph", () =>
+            {
+                textContainer.Clear();
+                textContainer.AddParagraph("first paragraph lorem ipsum dolor sit amet");
+                textContainer.AddParagraph(string.Empty);
+                textContainer.AddParagraph("second paragraph lorem ipsum dolor sit ametttttttttttttttttt");
+                textContainer.TextAnchor = textAnchor;
             });
         }
 

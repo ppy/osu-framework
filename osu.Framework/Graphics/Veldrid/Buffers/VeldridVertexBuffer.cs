@@ -100,12 +100,12 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         ~VeldridVertexBuffer()
         {
-            renderer.ScheduleDisposal(v => v.Dispose(false), this);
+            Dispose(false);
         }
 
         public void Dispose()
         {
-            renderer.ScheduleDisposal(v => v.Dispose(true), this);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -127,14 +127,21 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public void Free()
         {
-            memoryLease?.Dispose();
-            memoryLease = null;
+            if (buffer != null || memoryLease != null || stagingBuffer != null)
+            {
+                // Using a tuple instead of `this`-reference because the object may be reused after free, and so
+                // buffer, memoryLease, and stagingBuffer need to be nulled immediately.
+                renderer.ScheduleDisposal(static t =>
+                {
+                    t.buffer?.Dispose();
+                    t.memoryLease?.Dispose();
+                    t.stagingBuffer?.Dispose();
+                }, (buffer, memoryLease, stagingBuffer));
+            }
 
-            stagingBuffer?.Dispose();
-            stagingBuffer = null;
-
-            buffer?.Dispose();
             buffer = null;
+            memoryLease = null;
+            stagingBuffer = null;
 
             LastUseFrameIndex = 0;
         }

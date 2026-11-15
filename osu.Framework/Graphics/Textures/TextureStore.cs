@@ -246,8 +246,7 @@ namespace osu.Framework.Graphics.Textures
             try
             {
                 tex = loadRaw(uploadStore.Get(name), wrapModeS, wrapModeT);
-                if (tex != null)
-                    tex.LookupKey = key;
+                tex?.LookupKey = key;
 
                 return CacheAndReturnTexture(key, tex);
             }

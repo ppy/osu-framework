@@ -300,18 +300,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
             };
 
             AddStep("push screen1", () => stack.Push(screen1));
-            AddUntilStep("ensure current", () => screen1.IsCurrentScreen());
+            AddUntilStep("ensure current", screen1.IsCurrentScreen);
 
             AddStep("preload screen2", () => LoadComponentAsync(screen2));
             AddUntilStep("wait for load", () => screen2.LoadState == LoadState.Ready);
 
             AddStep("push screen2", () => screen1.Push(screen2));
-            AddUntilStep("ensure current", () => screen2.IsCurrentScreen());
+            AddUntilStep("ensure current", screen2.IsCurrentScreen);
 
-            AddStep("exit screen2", () => screen2.Exit());
+            AddStep("exit screen2", screen2.Exit);
             AddUntilStep("ensure exited", () => !screen2.IsCurrentScreen());
 
-            AddStep("push screen2", () => screen1.Exit());
+            AddStep("push screen2", screen1.Exit);
             AddUntilStep("ensure exited", () => !screen1.IsCurrentScreen());
 
             AddAssert("order is correct", () => order.SequenceEqual(order.OrderBy(i => i)));

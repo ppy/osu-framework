@@ -920,7 +920,7 @@ namespace osu.Framework.Tests.Bindables
 
             bindableStringByteDictionary.Parse(array, CultureInfo.InvariantCulture);
 
-            CollectionAssert.AreEquivalent(array, bindableStringByteDictionary);
+            Assert.That(array, Is.EquivalentTo(bindableStringByteDictionary));
         }
 
         [Test]

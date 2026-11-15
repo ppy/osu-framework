@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 
 namespace osu.Framework.SourceGeneration.Analysers
 {
-    public class DiagnosticRules
+    public static class DiagnosticRules
     {
         // Disable's roslyn analyser release tracking. Todo: Temporary? The analyser doesn't behave well with Rider :/
         // Read more: https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md

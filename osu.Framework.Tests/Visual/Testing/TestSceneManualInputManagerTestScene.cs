@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -17,8 +15,6 @@ namespace osu.Framework.Tests.Visual.Testing
 {
     public partial class TestSceneManualInputManagerTestScene : ManualInputManagerTestScene
     {
-        protected override Vector2 InitialMousePosition => new Vector2(10f);
-
         [Test]
         public void TestResetInput()
         {
@@ -29,7 +25,7 @@ namespace osu.Framework.Tests.Visual.Testing
 
             AddStep("reset input", ResetInput);
 
-            AddAssert("mouse position reset", () => InputManager.CurrentState.Mouse.Position == InitialMousePosition);
+            AddAssert("mouse position is zero", () => InputManager.CurrentState.Mouse.Position, () => Is.EqualTo(Vector2.Zero));
             AddAssert("all input states released", () =>
                 !InputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed &&
                 !InputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed &&
@@ -39,7 +35,7 @@ namespace osu.Framework.Tests.Visual.Testing
         [Test]
         public void TestPlatformAction()
         {
-            BasicTextBox textbox = null;
+            BasicTextBox textbox = null!;
 
             AddStep("add textbox", () => Child = textbox = new BasicTextBox
             {
@@ -65,7 +61,7 @@ namespace osu.Framework.Tests.Visual.Testing
         [Test]
         public void TestHoldLeftFromMaskedPosition()
         {
-            TestCursor cursor = null;
+            TestCursor cursor = null!;
 
             AddStep("retrieve cursor", () => cursor = (TestCursor)InputManager.ChildrenOfType<TestCursorContainer>().Single().ActiveCursor);
 
@@ -78,8 +74,5 @@ namespace osu.Framework.Tests.Visual.Testing
             AddStep("move mouse to content", () => InputManager.MoveMouseTo(Content));
             AddAssert("cursor still holding", () => cursor.Left.IsPresent);
         }
-
-        [Test]
-        public void TestMousePositionSetToInitial() => AddAssert("mouse position set to initial", () => InputManager.CurrentState.Mouse.Position == InitialMousePosition);
     }
 }

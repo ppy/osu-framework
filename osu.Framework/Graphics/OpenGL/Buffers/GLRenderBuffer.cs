@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         ~GLRenderBuffer()
         {
-            renderer.ScheduleDisposal(b => b.Dispose(false), this);
+            renderer.ScheduleDisposal(static b => b.Dispose(false), this);
         }
 
         public void Dispose()

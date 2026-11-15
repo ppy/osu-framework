@@ -35,7 +35,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private ShaderDescription vertexShaderDescription;
         private ShaderDescription fragmentShaderDescription;
 
-        IReadOnlyDictionary<string, IUniform> IShader.Uniforms => throw new NotSupportedException();
         public int LayoutCount => uniformLayouts.Count + textureLayouts.Count;
 
         private readonly Dictionary<string, VeldridUniformLayout> uniformLayouts = new Dictionary<string, VeldridUniformLayout>();
@@ -84,8 +83,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             renderer.UnbindShader(this);
             IsBound = false;
         }
-
-        public Uniform<T> GetUniform<T>(string name) where T : unmanaged, IEquatable<T> => throw new NotSupportedException();
 
         public void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
@@ -219,7 +216,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         ~VeldridShader()
         {
-            renderer.ScheduleDisposal(s => s.Dispose(false), this);
+            Dispose(false);
         }
 
         public void Dispose()
@@ -235,21 +232,24 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             isDisposed = true;
 
-            if (Shaders != null)
+            renderer.ScheduleDisposal(static s =>
             {
-                for (int i = 0; i < Shaders.Length; i++)
-                    Shaders[i].Dispose();
-            }
+                if (s.Shaders != null)
+                {
+                    for (int i = 0; i < s.Shaders.Length; i++)
+                        s.Shaders[i].Dispose();
+                }
 
-            foreach (var (_, layout) in uniformLayouts)
-                layout.Dispose();
+                foreach (var (_, layout) in s.uniformLayouts)
+                    layout.Dispose();
 
-            foreach (var layout in textureLayouts)
-                layout.Dispose();
+                foreach (var layout in s.textureLayouts)
+                    layout.Dispose();
 
-            uniformLayouts.Clear();
-            textureLayouts.Clear();
-            Shaders = null;
+                s.uniformLayouts.Clear();
+                s.textureLayouts.Clear();
+                s.Shaders = null;
+            }, this);
         }
     }
 }

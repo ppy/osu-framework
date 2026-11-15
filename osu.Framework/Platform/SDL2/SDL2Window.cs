@@ -10,6 +10,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
+using osu.Framework.Graphics;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
 using SixLabors.ImageSharp;
@@ -37,6 +38,10 @@ namespace osu.Framework.Platform.SDL2
         public bool Exists { get; private set; }
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
+
+        protected readonly Bindable<MarginPadding> BorderSize = new Bindable<MarginPadding>();
+
+        IBindable<MarginPadding> IWindow.BorderSize => BorderSize;
 
         public virtual Point PointToClient(Point point) => point;
 

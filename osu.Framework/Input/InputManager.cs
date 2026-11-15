@@ -209,7 +209,7 @@ namespace osu.Framework.Input
         /// <param name="button">The button to find the manager for.</param>
         /// <returns>The <see cref="MouseButtonEventManager"/>.</returns>
         public MouseButtonEventManager GetButtonEventManagerFor(MouseButton button) =>
-            mouseButtonEventManagers.TryGetValue(button, out var manager) ? manager : null;
+            mouseButtonEventManagers.GetValueOrDefault(button);
 
         /// <summary>
         /// Create a <see cref="KeyEventManager"/> for a specified key.

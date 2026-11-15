@@ -37,8 +37,10 @@ namespace osu.Framework.Tests.Audio
                 Assert.Ignore("Test may be intermittent on linux (see AudioThread.FreeDevice()).");
 
             Assert.That(sample.IsLoaded, Is.False);
+            Assert.That(sample.Length, Is.EqualTo(0));
             bass.RunOnAudioThread(() => bass.SampleStore.UpdateDevice(0));
             Assert.That(sample.IsLoaded, Is.True);
+            Assert.That(sample.Length, Is.GreaterThan(0));
         }
     }
 }

@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Transforms
         public TransformSequence(T origin)
         {
             if (origin == null)
-                throw new ArgumentNullException(nameof(origin), $"May not create a {nameof(TransformSequence<T>)} with a null {nameof(origin)}.");
+                throw new ArgumentNullException(nameof(origin), $"May not create a {nameof(TransformSequence<>)} with a null {nameof(origin)}.");
 
             this.origin = origin;
             startTime = currentTime = lastEndTime = origin.TransformStartTime;
@@ -58,8 +58,7 @@ namespace osu.Framework.Graphics.Transforms
         {
             // As soon as we have an infinitely looping transform,
             // completion no longer makes sense.
-            if (last != null)
-                last.CompletionTargetSequence = null;
+            last?.CompletionTargetSequence = null;
 
             last = null;
             lastEndTime = double.PositiveInfinity;
@@ -68,6 +67,10 @@ namespace osu.Framework.Graphics.Transforms
 
         public TransformSequence<T> TransformTo<TValue>(string propertyOrFieldName, TValue newValue, double duration = 0, Easing easing = Easing.None) =>
             Append(o => o.TransformTo(propertyOrFieldName, newValue, duration, easing));
+
+        public TransformSequence<T> TransformTo<TValue, TEasing>(string propertyOrFieldName, TValue newValue, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => Append(o => o.TransformTo(propertyOrFieldName, newValue, duration, easing));
 
         /// <summary>
         /// Adds an existing <see cref="Transform"/> operating on <see cref="origin"/> to this <see cref="TransformSequence{T}"/>.
@@ -92,8 +95,7 @@ namespace osu.Framework.Graphics.Transforms
             // Update last transform for completion callback
             if (last == null || transform.EndTime > lastEndTime)
             {
-                if (last != null)
-                    last.CompletionTargetSequence = null;
+                last?.CompletionTargetSequence = null;
 
                 last = transform;
                 last.CompletionTargetSequence = this;
@@ -130,7 +132,7 @@ namespace osu.Framework.Graphics.Transforms
                 child = childGenerator(origin);
 
             if (!ReferenceEquals(child.origin, origin))
-                throw new InvalidOperationException($"May not append {nameof(TransformSequence<T>)} with different origin.");
+                throw new InvalidOperationException($"May not append {nameof(TransformSequence<>)} with different origin.");
 
             var oldLast = last;
             foreach (var t in child.transforms)
@@ -183,7 +185,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 throw new InvalidOperationException(
                     "May not subscribe completion multiple times." +
-                    $"This exception is also caused by calling {nameof(Then)} or {nameof(Finally)} on an infinitely looping {nameof(TransformSequence<T>)}.");
+                    $"This exception is also caused by calling {nameof(Then)} or {nameof(Finally)} on an infinitely looping {nameof(TransformSequence<>)}.");
             }
 
             onComplete = func;
@@ -245,7 +247,7 @@ namespace osu.Framework.Graphics.Transforms
                 throw new InvalidOperationException($"May not {nameof(Loop)} for fewer than 1 iteration ({numIters} attempted).");
 
             if (!hasEnd)
-                throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
+                throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<>)}.");
 
             makeTransformsLooping(pause, numIters);
 
@@ -291,7 +293,7 @@ namespace osu.Framework.Graphics.Transforms
         public TransformSequence<T> Loop(double pause = 0)
         {
             if (!hasEnd)
-                throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
+                throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<>)}.");
 
             makeTransformsLooping(pause);
 
@@ -365,7 +367,7 @@ namespace osu.Framework.Graphics.Transforms
         public TransformSequence<T> Then(double delay, params Generator[] childGenerators)
         {
             if (!hasEnd)
-                throw new InvalidOperationException($"Can not perform {nameof(Then)} on an endless {nameof(TransformSequence<T>)}.");
+                throw new InvalidOperationException($"Can not perform {nameof(Then)} on an endless {nameof(TransformSequence<>)}.");
 
             // "Then" simply sets the currentTime to endTime to continue where the last transform left off,
             // followed by a subsequent delay call.
@@ -398,7 +400,7 @@ namespace osu.Framework.Graphics.Transforms
         public void OnComplete(Action<T> function)
         {
             if (!hasEnd)
-                throw new InvalidOperationException($"Can not perform {nameof(Then)} on an endless {nameof(TransformSequence<T>)}.");
+                throw new InvalidOperationException($"Can not perform {nameof(Then)} on an endless {nameof(TransformSequence<>)}.");
 
             subscribeComplete(() => function(origin));
         }

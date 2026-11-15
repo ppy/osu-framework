@@ -685,7 +685,7 @@ namespace osu.Framework.Bindables
         private void ensureMutationAllowed()
         {
             if (Disabled)
-                throw new InvalidOperationException($"Cannot mutate the {nameof(BindableList<T>)} while it is disabled.");
+                throw new InvalidOperationException($"Cannot mutate the {nameof(BindableList<>)} while it is disabled.");
         }
 
         public bool IsDefault => Count == 0;

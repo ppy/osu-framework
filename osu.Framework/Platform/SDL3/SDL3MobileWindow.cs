@@ -15,7 +15,7 @@ namespace osu.Framework.Platform.SDL3
         protected override unsafe void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             // This sets the status bar to hidden.
-            SDL_SetWindowFullscreen(SDLWindowHandle, true);
+            SDL_SetWindowFullscreen(SDLWindowHandle, true).LogErrorIfFailed();
 
             // Don't run base logic at all. Let's keep things simple.
         }

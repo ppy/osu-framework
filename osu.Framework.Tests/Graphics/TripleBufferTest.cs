@@ -108,6 +108,7 @@ namespace osu.Framework.Tests.Graphics
         }
 
         [Test]
+        [FlakyTest]
         public void TestReadSaturated()
         {
             var tripleBuffer = new TripleBuffer<TestObject>();

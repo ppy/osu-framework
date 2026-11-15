@@ -64,7 +64,7 @@ namespace osu.Framework.Allocation
         {
             if (!handle.IsAllocated)
             {
-                target = default;
+                target = null;
                 return false;
             }
 
@@ -80,7 +80,7 @@ namespace osu.Framework.Allocation
             {
             }
 
-            target = default;
+            target = null;
             return false;
         }
 

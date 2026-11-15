@@ -13,10 +13,6 @@ namespace osu.Framework.Benchmarks
         [Benchmark(Baseline = true)]
         public ButtonStates<MouseButton> CreateNew() => new ButtonStates<MouseButton>();
 
-        [Arguments(1)]
-        [Arguments(5)]
-        [Arguments(10)]
-        [Arguments(50)]
         [Benchmark]
         public bool SetPressed()
         {

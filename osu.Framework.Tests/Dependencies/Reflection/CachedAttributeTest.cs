@@ -155,7 +155,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
         [Test]
         public void TestGetValueNullInternal()
         {
-            Assert.AreEqual(default(int), new DependencyContainer().GetValue<int>());
+            Assert.AreEqual(0, new DependencyContainer().GetValue<int>());
         }
 
         /// <summary>

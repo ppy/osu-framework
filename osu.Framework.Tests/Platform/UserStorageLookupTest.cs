@@ -129,7 +129,7 @@ namespace osu.Framework.Tests.Platform
         private static void runHost(StorageLookupHeadlessGameHost host)
         {
             TestGame game = new TestGame();
-            game.Schedule(() => game.Exit());
+            game.Schedule(game.Exit);
             host.Run(game);
         }
 

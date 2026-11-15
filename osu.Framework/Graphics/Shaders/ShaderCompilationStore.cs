@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using Newtonsoft.Json;
 using osu.Framework.Extensions;
 using osu.Framework.Logging;
@@ -123,7 +124,7 @@ namespace osu.Framework.Graphics.Shaders
             return false;
         }
 
-        private static readonly object save_lock = new object();
+        private static readonly Lock save_lock = new Lock();
 
         private void saveToCache(string filename, object compilation)
         {

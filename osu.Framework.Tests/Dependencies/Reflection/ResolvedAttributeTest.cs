@@ -216,7 +216,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
         {
             var dependencies = new DependencyContainer();
 
-            toCache?.ForEach(o => dependencies.Cache(o));
+            toCache?.ForEach(dependencies.Cache);
 
             return dependencies;
         }

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Logging;
@@ -56,7 +57,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private readonly object startStopLock = new object();
+        private readonly Lock startStopLock = new Lock();
 
         /// <summary>
         /// Construct a new ThreadRunner instance.

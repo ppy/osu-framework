@@ -57,7 +57,7 @@ namespace osu.Framework.Utils
         /// <param name="time">The x coordinate to calculate the y coordinate for.</param>
         public static double Lagrange(ReadOnlySpan<Vector2> points, double time)
         {
-            if (points == null || points.Length == 0)
+            if (points.Length == 0)
                 throw new ArgumentException($"{nameof(points)} must contain at least one point");
 
             double sum = 0;
@@ -118,8 +118,9 @@ namespace osu.Framework.Utils
         /// <param name="time">The x coordinate to calculate the basis polynomial for.</param>
         public static double BarycentricLagrange(ReadOnlySpan<Vector2> points, double[] weights, double time)
         {
-            if (points == null || points.Length == 0)
+            if (points.Length == 0)
                 throw new ArgumentException($"{nameof(points)} must contain at least one point");
+
             if (points.Length != weights.Length)
                 throw new ArgumentException($"{nameof(points)} must contain exactly as many items as {nameof(weights)}");
 
@@ -386,7 +387,7 @@ namespace osu.Framework.Utils
                     val1.X + t * (val2.X - val1.X),
                     val1.Y + t * (val2.Y - val1.Y),
                     val1.Width + t * (val2.Width - val1.Width),
-                    val1.Height + t * (val2.X - val1.Height));
+                    val1.Height + t * (val2.Height - val1.Height));
             }
         }
 

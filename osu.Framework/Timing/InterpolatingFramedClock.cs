@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Timing
 {
@@ -19,6 +20,30 @@ namespace osu.Framework.Timing
         /// This is internally adjusted for the current playback rate (so that the actual precision is constant regardless of the rate applied).
         /// </remarks>
         public double AllowableErrorMilliseconds { get; set; } = 1000.0 / 60 * 2;
+
+        /// <summary>
+        /// Drift recovery half-life in milliseconds. Defaults to 50 ms.
+        /// </summary>
+        /// <remarks>
+        /// The time error decays exponentially toward the source.
+        /// Every <see cref="DriftRecoveryHalfLife"/> ms, the remaining error halves.
+        ///
+        /// An example, starting at 10 ms error with an 50 ms half-life:
+        ///
+        /// - at 0 ms, error is 10 ms.
+        /// - at 50 ms, error is 5 ms.
+        /// - at 100 ms, error is 2.5 ms.
+        /// - at 150 ms, error is 1.25 ms.
+        /// ...
+        ///
+        /// To an observer, it will look like time has a temporary ramp applied to it:
+        ///
+        /// - If source is ahead, time will speed up and gradually approach original speed.
+        /// - If source is behind, time will slow down and gradually approach original speed.
+        ///
+        /// Only applies when the error is within <see cref="AllowableErrorMilliseconds"/>.
+        /// </remarks>
+        public double DriftRecoveryHalfLife { get; set; } = 50;
 
         /// <summary>
         /// Whether interpolation was applied at the last processed frame.
@@ -100,11 +125,14 @@ namespace osu.Framework.Timing
 
                 if (IsInterpolating)
                 {
-                    // apply time increase from interpolation.
+                    // Apply time increase from interpolation.
                     currentTime += realtimeClock.ElapsedFrameTime * Rate;
-                    // if we differ from the elapsed time of the source, let's adjust for the difference.
-                    // TODO: this is frame rate depending, and can result in unexpected results.
-                    currentTime += (framedSourceClock.CurrentTime - currentTime) / 8;
+
+                    // Then check the post-interpolated time.
+                    // If we differ from the current time of the source, gradually approach the ground truth.
+                    //
+                    // The remaining error halves every half-life ms.
+                    currentTime = Interpolation.DampContinuously(currentTime, framedSourceClock.CurrentTime, DriftRecoveryHalfLife, realtimeClock.ElapsedFrameTime);
 
                     bool withinAllowableError = Math.Abs(framedSourceClock.CurrentTime - currentTime) <= AllowableErrorMilliseconds * Rate;
 

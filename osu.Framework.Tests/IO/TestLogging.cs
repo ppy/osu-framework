@@ -106,7 +106,7 @@ namespace osu.Framework.Tests.IO
 
                 for (int i = 0; i < fireCount; i++)
                     game.Schedule(() => throw new TestException());
-                game.Schedule(() => game.Exit());
+                game.Schedule(game.Exit);
 
                 host.Run(game);
             }

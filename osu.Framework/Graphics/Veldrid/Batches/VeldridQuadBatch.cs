@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
             : base(renderer, quads * IRenderer.VERTICES_PER_QUAD, PrimitiveTopology.Triangles, VeldridIndexLayout.Quad)
         {
             if (quads > IRenderer.MAX_QUADS)
-                throw new OverflowException($"Attempted to initialise a {nameof(VeldridQuadBatch<T>)} with more than {nameof(IRenderer)}.{nameof(IRenderer.MAX_QUADS)} quads ({IRenderer.MAX_QUADS}).");
+                throw new OverflowException($"Attempted to initialise a {nameof(VeldridQuadBatch<>)} with more than {nameof(IRenderer)}.{nameof(IRenderer.MAX_QUADS)} quads ({IRenderer.MAX_QUADS}).");
         }
     }
 }

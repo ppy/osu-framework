@@ -88,7 +88,7 @@ namespace osu.Framework.Platform.Windows
                 && RelativeMouseMode)
             {
                 var pt = PointToScreen(new Point((int)LastMousePosition.Value.X, (int)LastMousePosition.Value.Y));
-                SDL_WarpMouseGlobal(pt.X, pt.Y); // this directly calls the SetCursorPos win32 API
+                SDL_WarpMouseGlobal(pt.X, pt.Y).LogErrorIfFailed(); // this directly calls the SetCursorPos win32 API
             }
         }
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Platform.Windows
 
         protected override unsafe Size SetBorderless(Display display)
         {
-            SDL_SetWindowBordered(SDLWindowHandle, false);
+            SDL_SetWindowBordered(SDLWindowHandle, false).LogErrorIfFailed();
 
             var newSize = display.Bounds.Size;
 
@@ -130,7 +130,7 @@ namespace osu.Framework.Platform.Windows
                 // we also trick the game into thinking the window has normal size: see Size setter override
                 newSize += new Size(windows_borderless_width_hack, 0);
 
-            SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
+            SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height).LogErrorIfFailed();
             Position = display.Bounds.Location;
 
             return newSize;

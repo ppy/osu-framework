@@ -60,14 +60,12 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddSliderStep("change corner radius", 0, 100, 0, radius =>
             {
-                if (container != null)
-                    container.CornerRadius = radius;
+                container?.CornerRadius = radius;
             });
 
             AddSliderStep("change corner exponent", 0.1f, 10, 1, exponent =>
             {
-                if (container != null)
-                    container.CornerExponent = exponent;
+                container?.CornerExponent = exponent;
             });
         }
     }

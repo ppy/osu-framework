@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Threading
                     {
                         Interlocked.Increment(ref runCount);
                         Thread.Sleep(100);
-                    }, default, TaskCreationOptions.HideScheduler, taskScheduler);
+                    }, CancellationToken.None, TaskCreationOptions.HideScheduler, taskScheduler);
                 }
             }
 
@@ -55,7 +55,7 @@ namespace osu.Framework.Tests.Threading
                     {
                         while (!exited.IsSet)
                             Thread.Sleep(100);
-                    }, default, TaskCreationOptions.HideScheduler, taskScheduler);
+                    }, CancellationToken.None, TaskCreationOptions.HideScheduler, taskScheduler);
                 }
 
                 exited.Set();
@@ -76,7 +76,7 @@ namespace osu.Framework.Tests.Threading
             Task.Run(async () =>
             {
                 // ReSharper disable once AccessToDisposedClosure
-                await Task.Factory.StartNew(() => { run.Set(); }, default, TaskCreationOptions.HideScheduler, taskScheduler).ConfigureAwait(false);
+                await Task.Factory.StartNew(run.Set, CancellationToken.None, TaskCreationOptions.HideScheduler, taskScheduler).ConfigureAwait(false);
                 exited.Set();
             });
 
@@ -90,10 +90,7 @@ namespace osu.Framework.Tests.Threading
         {
             ThreadedTaskScheduler scheduler = new ThreadedTaskScheduler(1, string.Empty);
 
-            Thread disposeThread = new Thread(() =>
-            {
-                scheduler.Dispose();
-            })
+            Thread disposeThread = new Thread(scheduler.Dispose)
             {
                 IsBackground = true
             };

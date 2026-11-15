@@ -83,6 +83,10 @@ namespace osu.Framework.Graphics.UserInterface
         private readonly Container<Menu> submenuContainer;
         private readonly LayoutValue positionLayout = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
 
+        public override bool PropagatePositionalInputSubTree => State == MenuState.Open;
+        public override bool HandlePositionalInput => State == MenuState.Open;
+        public override bool HandleNonPositionalInput => State == MenuState.Open;
+
         /// <summary>
         /// Constructs a menu.
         /// </summary>
@@ -626,8 +630,6 @@ namespace osu.Framework.Graphics.UserInterface
                 }, HoverOpenDelay);
             }
         }
-
-        public override bool HandleNonPositionalInput => State == MenuState.Open;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {

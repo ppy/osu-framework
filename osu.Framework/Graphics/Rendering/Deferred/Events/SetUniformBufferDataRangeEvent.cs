@@ -10,6 +10,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     {
         public static RenderEvent Create<T>(DeferredRenderer renderer, IDeferredUniformBuffer uniformBuffer, UniformBufferReference range)
             where T : unmanaged, IEquatable<T>
-            => RenderEvent.Init(new SetUniformBufferDataRangeEvent(renderer.Context.Reference(uniformBuffer), range));
+            => RenderEvent.Create(new SetUniformBufferDataRangeEvent(renderer.Context.Reference(uniformBuffer), range));
     }
 }

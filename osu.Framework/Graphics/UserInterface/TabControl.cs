@@ -222,8 +222,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 SelectedTab = tab;
 
-                if (SelectedTab != null)
-                    SelectedTab.Active.Value = true;
+                SelectedTab?.Active.Value = true;
             }, true);
 
             // TabContainer doesn't have valid layout yet, so TabItems all have y=0 and selectTab() didn't call performTabSort() so we call it here instead
@@ -279,7 +278,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             // Do not allow duplicate adding
             if (tabMap.ContainsKey(value))
-                throw new InvalidOperationException($"Item {value} has already been added to this {nameof(TabControl<T>)}");
+                throw new InvalidOperationException($"Item {value} has already been added to this {nameof(TabControl<>)}");
 
             var tab = CreateTabItem(value);
             AddTabItem(tab, addToDropdown);
@@ -288,7 +287,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void removeTab(T value, bool removeFromDropdown = true)
         {
             if (!tabMap.TryGetValue(value, out var tab))
-                throw new InvalidOperationException($"Item {value} doesn't exist in this {nameof(TabControl<T>)}.");
+                throw new InvalidOperationException($"Item {value} doesn't exist in this {nameof(TabControl<>)}.");
 
             RemoveTabItem(tab, removeFromDropdown);
         }
@@ -369,7 +368,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void SelectItem(T item)
         {
             if (!tabMap.TryGetValue(item, out var tab))
-                throw new InvalidOperationException($"Item {item} cannot be selected as it does not exist in this {nameof(TabControl<T>)}");
+                throw new InvalidOperationException($"Item {item} cannot be selected as it does not exist in this {nameof(TabControl<>)}");
 
             SelectTab(tab);
         }

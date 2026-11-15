@@ -60,6 +60,19 @@ namespace osu.Framework.Graphics.Sprites
         public string FontName { get; }
 
         /// <summary>
+        /// The part of <see cref="FontName"/> directly after <see cref="Family"/>,
+        /// used for looking up other font families sharing same weight/italics specifications.
+        /// </summary>
+        /// <remarks>
+        /// The format is of the form: <br />
+        /// (empty) <br />
+        /// -Italic <br />
+        /// -{Weight}Italic
+        /// </remarks>
+        [NotNull]
+        public string FontNameNoFamily { get; }
+
+        /// <summary>
         /// Creates an instance of <see cref="FontUsage"/> using the specified font <paramref name="family"/>, font <paramref name="weight"/> and a value indicating whether the used font is italic or not.
         /// </summary>
         /// <param name="family">The font family name.</param>
@@ -76,6 +89,7 @@ namespace osu.Framework.Graphics.Sprites
             FixedWidth = fixedWidth;
 
             FontName = Family + "-";
+
             if (!string.IsNullOrEmpty(weight))
                 FontName += weight;
 
@@ -83,6 +97,8 @@ namespace osu.Framework.Graphics.Sprites
                 FontName += "Italic";
 
             FontName = FontName.TrimEnd('-');
+
+            FontNameNoFamily = string.IsNullOrEmpty(Family) ? FontName : FontName.Substring(Family.Length);
         }
 
         /// <summary>

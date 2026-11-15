@@ -6,6 +6,7 @@
 using System.IO;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -26,7 +27,7 @@ namespace osu.Framework.Graphics.UserInterface
             Action = ShowHiddenItems.Toggle,
         };
 
-        protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BasicDirectorySelectorDirectory(directory, displayName);
+        protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, LocalisableString? displayName = null) => new BasicDirectorySelectorDirectory(directory, displayName);
 
         protected override DirectorySelectorDirectory CreateParentDirectoryItem(DirectoryInfo directory) => new BasicDirectorySelectorParentDirectory(directory);
 

@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Audio
 
             Assert.IsTrue(updateLoopStarted.Wait(10000));
 
-            Assert.DoesNotThrow(() => manager.Dispose());
+            Assert.DoesNotThrow(manager.Dispose);
 
             thread.Dispose();
         }

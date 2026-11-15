@@ -184,6 +184,9 @@ namespace osu.Framework.Audio.Track
                 Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
                 Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.TempoOverlapMilliseconds, 4);
                 Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
+                // 0x10017 = BASS_ATTRIB_TEMPO_OPTION_OLDPOS, used for smoother time reporting when tempo adjustments are active
+                // see: https://www.un4seen.com/forum/?topic=20482.msg145282#msg145282
+                Bass.ChannelSetAttribute(tempoAdjustStream, (ChannelAttribute)0x10017, 1);
             }
 
             return stream;
@@ -204,6 +207,11 @@ namespace osu.Framework.Audio.Track
                 // While on windows, changing to "No sound" changes the playback state correctly,
                 // on macOS it is left in a playing-but-stalled state. Forcefully stopping first fixes this.
                 stopInternal();
+
+                // this is required otherwise the "Completed" event won't fire after a device change
+                cleanUpSyncs();
+                initializeSyncs();
+
                 startInternal();
             }
         }
@@ -332,7 +340,11 @@ namespace osu.Framework.Audio.Track
             Debug.Assert(CanPerformInline);
 
             long bytePosition = bassMixer.ChannelGetPosition(this);
-            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
+
+            // A mixer with the MixerNonStop flag may not have a valid position if the underlying track is not in a valid state.
+            // See https://www.un4seen.com/forum/?msg=142145.
+            if (bytePosition != -1)
+                Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
         }
 
         private double currentTime;

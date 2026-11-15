@@ -38,5 +38,43 @@ namespace osu.Framework.Extensions
                     return false;
             }
         }
+
+        /// <summary>
+        /// If <paramref name="key"/> is a <see cref="IsPhysical">physical</see> key which is covered by another <see cref="IsVirtual">virtual</see> key, returns that virtual key.
+        /// Otherwise, returns <see langword="null"/>.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// &gt; InputKey.LShift.GetVirtualKey()
+        /// Shift
+        /// &gt; InputKey.RSuper.GetVirtualKey()
+        /// Super
+        /// &gt; InputKey.A.GetVirtualKey()
+        /// null
+        /// </code>
+        /// </example>
+        public static InputKey? GetVirtualKey(this InputKey key)
+        {
+            switch (key)
+            {
+                case InputKey.LShift:
+                case InputKey.RShift:
+                    return InputKey.Shift;
+
+                case InputKey.LControl:
+                case InputKey.RControl:
+                    return InputKey.Control;
+
+                case InputKey.LAlt:
+                case InputKey.RAlt:
+                    return InputKey.Alt;
+
+                case InputKey.LSuper:
+                case InputKey.RSuper:
+                    return InputKey.Super;
+            }
+
+            return null;
+        }
     }
 }

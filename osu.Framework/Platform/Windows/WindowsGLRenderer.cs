@@ -29,6 +29,8 @@ namespace osu.Framework.Platform.Windows
         {
             base.Initialise(graphicsSurface);
 
+            MakeCurrent();
+
             bool isIntel = GL.GetString(StringName.Vendor).Trim() == "Intel";
 
             if (isIntel)
@@ -43,6 +45,8 @@ namespace osu.Framework.Platform.Windows
                 host.Window.WindowStateChanged += _ => detectFullscreenCapability(host.Window);
                 detectFullscreenCapability(host.Window);
             }
+
+            ClearCurrent();
         }
 
         private CancellationTokenSource? fullscreenCapabilityDetectionCancellationSource;
