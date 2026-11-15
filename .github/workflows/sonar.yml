@@ -1,9 +1,9 @@
-# PR 与 master 直推自动 Sonar；tag 不触发。评论 /sonar 可由 SK-la 或 PR 作者手动触发
+# 所有 PR 自动 Sonar；master 直推同步分析。PR 评论 /sonar 可由仓库 OWNER 或 PR 作者手动触发
 name: SonarQube
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
 
   push:
     branches:
@@ -13,11 +13,6 @@ on:
 
   issue_comment:
     types: [created]
-
-# 同一 PR/分支只保留最新 Sonar；group 含 ref/PR 号，不与 ci.yml 共用
-concurrency:
-  group: sonar-${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
-  cancel-in-progress: true
 
 env:
   SONAR_PROJECT_KEY: SK-la_ez2lazer-framework
@@ -33,6 +28,9 @@ jobs:
 
     name: Sonar Auto Review
     runs-on: windows-latest
+    concurrency:
+      group: sonar-auto-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
 
     steps:
       - name: Set up JDK 21
@@ -98,6 +96,9 @@ jobs:
 
     name: Sonar Master
     runs-on: windows-latest
+    concurrency:
+      group: sonar-master
+      cancel-in-progress: true
 
     steps:
       - name: Set up JDK 21
@@ -160,12 +161,15 @@ jobs:
       github.event.issue.pull_request &&
       contains(github.event.comment.body, '/sonar') &&
       (
-        github.event.comment.user.login == 'SK-la' ||
+        github.event.comment.author_association == 'OWNER' ||
         github.event.comment.user.login == github.event.issue.user.login
       )
 
     name: Sonar Manual Review
     runs-on: windows-latest
+    concurrency:
+      group: sonar-manual-${{ github.event.issue.number }}
+      cancel-in-progress: false
 
     steps:
       - name: Resolve pull request
