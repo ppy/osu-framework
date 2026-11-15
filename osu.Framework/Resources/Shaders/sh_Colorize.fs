@@ -97,9 +97,6 @@ void main(void)
     mediump float alpha = texel.a;
     mediump vec3 rgb = texel.rgb;
 
-    if (alpha > 0.0 && alpha < 1.0)
-        rgb /= alpha;
-
     mediump float mask = rangeMask(rgb);
     mediump vec3 recoloured = g_Algorithm == 1
         ? setLum(g_Tint.rgb, luma(rgb))
@@ -109,9 +106,6 @@ void main(void)
         recoloured = mix(recoloured, g_Tint.rgb, mask);
 
     rgb = mix(rgb, recoloured, mask);
-
-    if (alpha > 0.0 && alpha < 1.0)
-        rgb *= alpha;
 
     o_Colour = getRoundedColor(vec4(rgb, alpha), wrappedCoord);
 }
