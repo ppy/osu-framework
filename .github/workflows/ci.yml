@@ -82,6 +82,12 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      - name: Install Vulkan (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mesa-vulkan-drivers libvulkan1
+
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
