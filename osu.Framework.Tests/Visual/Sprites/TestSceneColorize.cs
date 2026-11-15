@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 Direction = FillDirection.Full,
                 Spacing = new Vector2(12),
                 Padding = new MarginPadding(20),
-                Children = new Drawable[]
+                Children = new[]
                 {
                     labelled("Original", new Sprite
                     {
@@ -67,7 +67,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 AutoSizeAxes = Axes.Both,
                 Direction = FillDirection.Vertical,
                 Spacing = new Vector2(4),
-                Children = new Drawable[]
+                Children = new[]
                 {
                     new SpriteText { Text = text },
                     content,
@@ -126,14 +126,25 @@ namespace osu.Framework.Tests.Visual.Sprites
                         continue;
                     }
 
-                    if (nx > 0.62f && ny > 0.55f && ny < 0.82f)
+                    if (nx > 0.37f && nx < 0.63f && ny > 0.55f && ny < 0.82f)
                     {
                         image[x, y] = new Rgba32(25, 51, 230, 255);
                         continue;
                     }
 
-                    byte grey = (byte)(38 + ny * 140);
-                    image[x, y] = new Rgba32(grey, grey, grey, 255);
+                    if (nx < 0.5f)
+                    {
+                        byte grey = (byte)(38 + (1f - ny) * 140);
+                        image[x, y] = new Rgba32(grey, grey, grey, 255);
+                        continue;
+                    }
+
+                    float t = Math.Clamp((ny - 0.28f) / 0.6f, 0f, 1f);
+                    image[x, y] = new Rgba32(
+                        255,
+                        (byte)(255 + (40 - 255) * t),
+                        (byte)(255 + (90 - 255) * t),
+                        255);
                 }
             }
 
