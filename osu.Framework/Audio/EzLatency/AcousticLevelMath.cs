@@ -14,6 +14,8 @@ namespace osu.Framework.Audio.EzLatency
         {
             IeeeFloat32,
             Pcm16,
+            Pcm24,
+            Pcm32,
             Unsupported
         }
 
@@ -59,6 +61,47 @@ namespace osu.Framework.Audio.EzLatency
                 return (float)Math.Sqrt(sum / samples);
             }
 
+            if (format == SampleFormat.Pcm24)
+            {
+                int samples = bytes / 3;
+                if (samples <= 0)
+                    return 0;
+
+                byte* ptr = (byte*)buffer;
+                double sum = 0;
+
+                for (int i = 0; i < samples; i++)
+                {
+                    int offset = i * 3;
+                    int raw = ptr[offset] | (ptr[offset + 1] << 8) | (ptr[offset + 2] << 16);
+                    if ((raw & 0x800000) != 0)
+                        raw |= ~0xFFFFFF;
+
+                    float n = raw / 8388608f;
+                    sum += n * n;
+                }
+
+                return (float)Math.Sqrt(sum / samples);
+            }
+
+            if (format == SampleFormat.Pcm32)
+            {
+                int samples = bytes / 4;
+                if (samples <= 0)
+                    return 0;
+
+                int* ptr = (int*)buffer;
+                double sum = 0;
+
+                for (int i = 0; i < samples; i++)
+                {
+                    float n = ptr[i] / 2147483648f;
+                    sum += n * n;
+                }
+
+                return (float)Math.Sqrt(sum / samples);
+            }
+
             return 0;
         }
 
@@ -67,44 +110,13 @@ namespace osu.Framework.Audio.EzLatency
             ComputeRms(buffer, bytes, SampleFormat.IeeeFloat32);
 
         /// <summary>RMS of interleaved PCM samples.</summary>
-        public static float ComputeRms(byte[] buffer, int bytesRecorded, SampleFormat format)
+        public static unsafe float ComputeRms(byte[] buffer, int bytesRecorded, SampleFormat format)
         {
-            if (format == SampleFormat.IeeeFloat32)
-            {
-                int samples = bytesRecorded / 4;
-                if (samples <= 0)
-                    return 0;
+            if (buffer == null || bytesRecorded <= 0)
+                return 0;
 
-                double sum = 0;
-
-                for (int i = 0; i < samples; i++)
-                {
-                    float sample = BitConverter.ToSingle(buffer, i * 4);
-                    sum += sample * sample;
-                }
-
-                return (float)Math.Sqrt(sum / samples);
-            }
-
-            if (format == SampleFormat.Pcm16)
-            {
-                int samples = bytesRecorded / 2;
-                if (samples <= 0)
-                    return 0;
-
-                double sum = 0;
-
-                for (int i = 0; i < samples; i++)
-                {
-                    short sample = BitConverter.ToInt16(buffer, i * 2);
-                    float n = sample / 32768f;
-                    sum += n * n;
-                }
-
-                return (float)Math.Sqrt(sum / samples);
-            }
-
-            return 0;
+            fixed (byte* ptr = buffer)
+                return ComputeRms((IntPtr)ptr, Math.Min(bytesRecorded, buffer.Length), format);
         }
     }
 }

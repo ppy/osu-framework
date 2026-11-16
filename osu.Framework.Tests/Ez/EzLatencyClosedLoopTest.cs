@@ -176,6 +176,36 @@ namespace osu.Framework.Tests.Ez
         }
 
         [Test]
+        public void ComputeRms_Pcm24FullScaleNearOne()
+        {
+            byte[] buffer = new byte[3 * 8];
+
+            for (int i = 0; i < 8; i++)
+            {
+                buffer[i * 3] = 0xFF;
+                buffer[i * 3 + 1] = 0xFF;
+                buffer[i * 3 + 2] = 0x7F;
+            }
+
+            float rms = AcousticLevelMath.ComputeRms(buffer, buffer.Length, AcousticLevelMath.SampleFormat.Pcm24);
+
+            Assert.That(rms, Is.EqualTo(8388607f / 8388608f).Within(1e-4));
+        }
+
+        [Test]
+        public void ComputeRms_Pcm32FullScaleNearOne()
+        {
+            byte[] buffer = new byte[4 * 8];
+
+            for (int i = 0; i < 8; i++)
+                BitConverter.GetBytes(int.MaxValue).CopyTo(buffer, i * 4);
+
+            float rms = AcousticLevelMath.ComputeRms(buffer, buffer.Length, AcousticLevelMath.SampleFormat.Pcm32);
+
+            Assert.That(rms, Is.EqualTo(int.MaxValue / 2147483648f).Within(1e-4));
+        }
+
+        [Test]
         public void OutputPathProbe_ObserveFloat_RecordsWhenAboveThreshold()
         {
             var hardware = new List<(double driver, double outHw, double inHw, double lat)>();
