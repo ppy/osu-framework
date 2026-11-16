@@ -143,6 +143,39 @@ namespace osu.Framework.Audio
         public Action OnAsioOutputUnavailable;
 
         /// <summary>
+        /// Invoked on the game update thread when an explicit output selection failed to start.
+        /// The host may show a notification. Exclusive WASAPI Busy failures may recover after a restart.
+        /// </summary>
+        [CanBeNull]
+        public Action<AudioOutputFailureInfo> OnAudioOutputSwitchFailed;
+
+        /// <summary>
+        /// User-facing details for <see cref="OnAudioOutputSwitchFailed"/>.
+        /// </summary>
+        public readonly record struct AudioOutputFailureInfo(AudioOutputMode Mode, string Selection, string BassError, string Message)
+        {
+            public static AudioOutputFailureInfo Create(AudioOutputMode mode, string selection, string bassError)
+            {
+                string modeText = mode switch
+                {
+                    AudioOutputMode.WasapiExclusive => "WASAPI Exclusive",
+                    AudioOutputMode.WasapiShared => "WASAPI shared",
+                    AudioOutputMode.Asio => "ASIO",
+                    _ => "Audio output"
+                };
+
+                string device = string.IsNullOrEmpty(selection) ? "default device" : selection;
+                string error = string.IsNullOrEmpty(bassError) ? "unknown" : bassError;
+
+                return new AudioOutputFailureInfo(
+                    mode,
+                    selection ?? string.Empty,
+                    string.IsNullOrEmpty(bassError) ? null : bassError,
+                    $"{modeText} failed to start ({device}, {error}). Output is not running.");
+            }
+        }
+
+        /// <summary>
         /// The preferred audio device we should use. A value of
         /// <see cref="string.Empty"/> denotes the OS default.
         /// </summary>
@@ -422,7 +455,8 @@ namespace osu.Framework.Audio
             bool? LowLatencyActive = null,
             int? WasapiBufferMs = null,
             int? WasapiPeriodMs = null,
-            int? WasapiRequestedBufferMs = null);
+            int? WasapiRequestedBufferMs = null,
+            string LastError = null);
 
         private WindowsOutputRuntimeInfo windowsOutputRuntime;
 
@@ -533,8 +567,7 @@ namespace osu.Framework.Audio
             // Not running / runtime not yet published for this selection.
             return mode switch
             {
-                AudioOutputMode.WasapiExclusive =>
-                    "Output: not running · auto",
+                AudioOutputMode.WasapiExclusive => exclusiveNotRunningLine(),
                 AudioOutputMode.WasapiShared =>
                     "Output: not running · buffer OS-min (BassWasapi shared)",
                 AudioOutputMode.Default when RuntimeInfo.OS != RuntimeInfo.Platform.Windows =>
@@ -543,6 +576,17 @@ namespace osu.Framework.Audio
                     $"Output: not running · latency target {AudioOutputDefaults.DEFAULT_NAUDIO_LATENCY_MS}ms (NAudio WASAPI shared)",
                 _ => "Output: not running"
             };
+        }
+
+        private string exclusiveNotRunningLine()
+        {
+            string line = "Output: not running · auto";
+
+            if (windowsOutputRuntime.Mode == AudioOutputMode.WasapiExclusive
+                && !string.IsNullOrEmpty(windowsOutputRuntime.LastError))
+                line += $" · last error {windowsOutputRuntime.LastError}";
+
+            return line;
         }
 
         /// <summary>
@@ -1017,7 +1061,15 @@ namespace osu.Framework.Audio
                 Logger.Log($"Keeping explicit audio selection '{AudioDevice.Value}' after initialisation failure; skipping silent fallback to default device.", name: "audio", level: LogLevel.Important);
                 Logger.Log($"Audio output remains uninitialised after explicit device selection failure: '{AudioDevice.Value}'.", name: "audio", level: LogLevel.Important);
 
-                if (parseSelection(AudioDevice.Value).mode == AudioOutputMode.Asio)
+                var (mode, _) = parseSelection(AudioDevice.Value);
+                string bassError = windowsOutputRuntime.LastError;
+
+                if (string.IsNullOrEmpty(bassError) && Bass.LastError != Errors.OK)
+                    bassError = Bass.LastError.ToString();
+
+                notifyAudioOutputSwitchFailed(AudioOutputFailureInfo.Create(mode, AudioDevice.Value, bassError));
+
+                if (mode == AudioOutputMode.Asio)
                     notifyAsioOutputUnavailable();
             }
 
@@ -1458,6 +1510,18 @@ namespace osu.Framework.Audio
             scheduler.AddOnce(initCurrentDevice);
         }
 
+        private void notifyAudioOutputSwitchFailed(AudioOutputFailureInfo info)
+        {
+            Logger.Log(info.Message, name: "audio", level: LogLevel.Important);
+
+            var callback = OnAudioOutputSwitchFailed;
+
+            if (callback == null)
+                return;
+
+            eventScheduler.Add(() => callback(info));
+        }
+
         private void notifyAsioOutputUnavailable()
         {
             var callback = OnAsioOutputUnavailable;
@@ -1465,7 +1529,7 @@ namespace osu.Framework.Audio
             if (callback == null)
                 return;
 
-            scheduler.AddOnce(callback);
+            eventScheduler.AddOnce(callback);
         }
 
         private static void logAsioNativeUnavailableOnce(Exception e)

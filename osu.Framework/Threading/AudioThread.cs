@@ -820,6 +820,13 @@ namespace osu.Framework.Threading
                         // Fallback would likely be busy (e.g. browser playing on default), and would mask the real issue.
                         Logger.Log($"Could not map BASS device {bassDeviceId} (driver '{driver}') to a WASAPI output device; refusing to fall back to default (-1).", name: "audio",
                             level: LogLevel.Verbose);
+
+                        if (exclusive)
+                        {
+                            lastWasapiInitError = Errors.Driver;
+                            publishExclusiveWasapiInactive();
+                        }
+
                         return false;
                     }
                 }
@@ -920,7 +927,8 @@ namespace osu.Framework.Threading
         {
             Manager?.SetWindowsOutputRuntime(new AudioManager.WindowsOutputRuntimeInfo(
                 Mode: AudioOutputMode.WasapiExclusive,
-                Active: false));
+                Active: false,
+                LastError: lastWasapiInitError == Errors.OK ? null : lastWasapiInitError.ToString()));
         }
 
         private bool initWasapi(int wasapiDevice, bool exclusive, int bufferMs)
