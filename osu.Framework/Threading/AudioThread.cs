@@ -366,7 +366,10 @@ namespace osu.Framework.Threading
             {
                 Thread.Sleep(100);
             }
-            else if (needsEndpointSettle && outputMode == AudioOutputMode.Default && OperatingSystem.IsWindows() && !DebugUtils.IsNUnitRunning)
+            else if (needsEndpointSettle
+                     && (outputMode == AudioOutputMode.Default || outputMode == AudioOutputMode.WasapiExclusive)
+                     && OperatingSystem.IsWindows()
+                     && !DebugUtils.IsNUnitRunning)
             {
                 Thread.Sleep(150);
             }
