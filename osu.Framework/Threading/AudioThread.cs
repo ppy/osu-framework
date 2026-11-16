@@ -1135,8 +1135,11 @@ namespace osu.Framework.Threading
             }
             finally
             {
-                exclusiveEndpointGain?.Dispose();
-                exclusiveEndpointGain = null;
+                if (OperatingSystem.IsWindows())
+                {
+                    exclusiveEndpointGain?.Dispose();
+                    exclusiveEndpointGain = null;
+                }
 
                 if (hadWasapi)
                     wasapiOrAsioWasActive = true;
