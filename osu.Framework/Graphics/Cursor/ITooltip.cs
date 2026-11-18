@@ -21,6 +21,16 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         /// <param name="pos">The position the tooltip should be moved to.</param>
         void Move(Vector2 pos);
+
+        /// <summary>
+        /// Whether to allow the cursor to overlap the tooltip. If true, the tooltip will try to stay anchored
+        /// to the bottom-right of the cursor while keeping itself on screen, potentially overlapping the cursor.
+        /// If false, the tooltip will move to the top-right when the content doesn't fit with the current cursor location.
+        /// </summary>
+        /// <remarks>
+        /// If true, this can be used to avoid abrupt position changes when the content is near the bottom window edge.
+        /// </remarks>
+        bool AllowCursorOverlap { get; }
     }
 
     /// <inheritdoc />
