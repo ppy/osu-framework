@@ -2520,5 +2520,59 @@ namespace osu.Framework.Input.Bindings
         TabletAuxiliaryButton16,
 
         #endregion
+
+        #region Non-standard Keyboard keys
+
+        /// <summary>
+        /// Indicates the first available non-standard keyboard key.
+        /// </summary>
+        FirstNonStandardKeyboardKey = 11264 + 1,
+
+        /// <summary>
+        /// The ':' key.
+        /// </summary>
+        Colon,
+
+        /// <summary>
+        /// The '!' key.
+        /// </summary>
+        Exclaim,
+
+        /// <summary>
+        /// The '$' key.
+        /// </summary>
+        Dollar,
+
+        /// <summary>
+        /// The '*' key.
+        /// </summary>
+        Asterisk,
+
+        /// <summary>
+        /// The ')' key.
+        /// </summary>
+        RightParen,
+
+        /// <summary>
+        /// The '(' key.
+        /// </summary>
+        LeftParen,
+
+        /// <summary>
+        /// The '^' key.
+        /// </summary>
+        Caret,
+
+        /// <summary>
+        /// The '&lt;' key.
+        /// </summary>
+        Less,
+
+        /// <summary>
+        /// The '@' key.
+        /// </summary>
+        At,
+
+        #endregion
     }
 }
