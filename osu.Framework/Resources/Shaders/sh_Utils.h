@@ -1,9 +1,6 @@
 ﻿#ifndef UTILS_H
 #define UTILS_H
 
-#undef GAMMA
-#define GAMMA 2.4
-
 // perform alpha compositing of two colour components.
 // see http://apoorvaj.io/alpha-compositing-opengl-blending-and-premultiplied-alpha.html
 lowp vec4 blend(lowp vec4 src, lowp vec4 dst)
