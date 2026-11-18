@@ -35,7 +35,7 @@
     </PackageReference>
     <PackageReference Include="NUnit" Version="4.6.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="OpenTabletDriver" Version="0.6.7" />
+    <PackageReference Include="OpenTabletDriver" Version="0.6.8.1" />
     <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.211" />
     <PackageReference Include="StbiSharp" Version="1.2.3" />

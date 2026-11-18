@@ -205,11 +205,11 @@ namespace osu.Framework.Input.Handlers.Tablet
                     Vector2 position = (windowSize / 2) + offsetFromCenter;
 
                     absoluteOutputMode.Output = new Area
-                    {
-                        Width = scaledSize.X,
-                        Height = scaledSize.Y,
-                        Position = position.ToSystemNumerics()
-                    };
+                    (
+                        scaledSize.X,
+                        scaledSize.Y,
+                        position.ToSystemNumerics()
+                    );
                     break;
                 }
             }
@@ -245,12 +245,12 @@ namespace osu.Framework.Input.Handlers.Tablet
                 {
                     // Set input area in millimeters
                     absoluteOutputMode.Input = new Area
-                    {
-                        Width = AreaSize.Value.X,
-                        Height = AreaSize.Value.Y,
-                        Position = new System.Numerics.Vector2(AreaOffset.Value.X, AreaOffset.Value.Y),
-                        Rotation = Rotation.Value
-                    };
+                    (
+                        AreaSize.Value.X,
+                        AreaSize.Value.Y,
+                        new System.Numerics.Vector2(AreaOffset.Value.X, AreaOffset.Value.Y),
+                        Rotation.Value
+                    );
                     break;
                 }
             }
