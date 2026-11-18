@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Textures
         private readonly TextureFilteringMode filteringMode;
         private readonly bool manualMipmaps;
 
-        protected TextureAtlas Atlas;
+        public TextureAtlas Atlas { get; internal set; }
 
         /// <remarks>
         /// While it would be beneficial to have this atlas size be higher (the ideal size seems to be somewhere in the ballpark of 4096),
@@ -48,7 +48,26 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public readonly float ScaleAdjust;
 
-        public TextureStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, bool useAtlas = true, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
+        public TextureStore(IRenderer renderer, TextureAtlas atlas, IResourceStore<TextureUpload> store = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+                            bool manualMipmaps = false, float scaleAdjust = 2)
+            : this(renderer, store, filteringMode, manualMipmaps, scaleAdjust)
+        {
+            Atlas = atlas;
+        }
+
+        public TextureStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, bool useAtlas = true, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+                            bool manualMipmaps = false, float scaleAdjust = 2)
+            : this(renderer, store, filteringMode, manualMipmaps, scaleAdjust)
+        {
+            if (useAtlas)
+            {
+                int size = Math.Min(max_atlas_size, renderer.MaxTextureSize);
+                Atlas = new TextureAtlas(renderer, size, size, filteringMode: filteringMode, manualMipmaps: manualMipmaps);
+            }
+        }
+
+        protected TextureStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+                               bool manualMipmaps = false, float scaleAdjust = 2)
         {
             if (store != null)
                 AddTextureSource(store);
@@ -58,12 +77,6 @@ namespace osu.Framework.Graphics.Textures
             this.manualMipmaps = manualMipmaps;
 
             ScaleAdjust = scaleAdjust;
-
-            if (useAtlas)
-            {
-                int size = Math.Min(max_atlas_size, renderer.MaxTextureSize);
-                Atlas = new TextureAtlas(renderer, size, size, filteringMode: filteringMode, manualMipmaps: manualMipmaps);
-            }
         }
 
         /// <summary>
