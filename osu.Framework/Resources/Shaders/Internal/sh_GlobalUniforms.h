@@ -24,6 +24,8 @@ layout(std140, set = -1, binding = 0) uniform g_GlobalUniforms
     bool g_IsMasking;
     highp float g_CornerRadius;
     highp float g_CornerExponent;
+	bool g_TextureHasPremultipliedAlpha;
+
     highp vec4 g_MaskingRect;
     highp float g_BorderThickness;
     lowp mat4 g_BorderColour;
