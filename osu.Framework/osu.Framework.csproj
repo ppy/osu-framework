@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework</AssemblyTitle>
@@ -26,8 +26,8 @@
     <PackageReference Include="ppy.ManagedBass.Fx" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Mix" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Wasapi" Version="2022.1216.0" />
-    <PackageReference Include="ppy.Veldrid" Version="4.9.69-ga405fe8484" />
-    <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-g5911265ec3" />
+    <PackageReference Include="ppy.Veldrid" Version="4.9.86-g62f472bade" />
+    <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-g039422c80c" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <!-- Held back due to licencing concerns. Silenced vulnerabilities have been mitigated. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11">

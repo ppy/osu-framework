@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Globalization;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -271,7 +272,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 if (e.Axis.Source == trackedAxis)
                 {
-                    rawValue.Text = e.Axis.Value.ToString("0.0000000");
+                    rawValue.Text = e.Axis.Value.ToString("0.0000000", CultureInfo.InvariantCulture);
                     fill.Width = e.Axis.Value / 2;
                     fill.Alpha = Math.Abs(e.Axis.Value) == 1 ? 1 : 0.6f;
                 }

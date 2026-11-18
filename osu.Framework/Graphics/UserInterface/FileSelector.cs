@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (validFileExtensions.Length > 0)
                     files = files.Where(f => validFileExtensions.Contains(f.Extension));
 
-                foreach (var file in files.OrderBy(d => d.Name))
+                foreach (var file in files.OrderBy(d => d.Name, StringComparer.Ordinal))
                 {
                     if (ShowHiddenItems.Value || !file.Attributes.HasFlagFast(FileAttributes.Hidden))
                         items.Add(CreateFileItem(file));

@@ -8,6 +8,7 @@ using osuTK.Graphics;
 using osu.Framework.Graphics.Lines;
 using osuTK;
 using System;
+using System.Globalization;
 using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Tests.Visual.Drawables
@@ -51,8 +52,8 @@ namespace osu.Framework.Tests.Visual.Drawables
             float innerAngle = MathHelper.TwoPi * innerStep / max_inner_steps;
             float outerAngle = MathHelper.TwoPi * outerStep / max_outer_steps;
 
-            innerText.Text = "Inner angle: " + MathHelper.RadiansToDegrees(innerAngle).ToString("000.000");
-            outerText.Text = "Outer angle: " + MathHelper.RadiansToDegrees(outerAngle).ToString("000.000");
+            innerText.Text = "Inner angle: " + MathHelper.RadiansToDegrees(innerAngle).ToString("000.000", CultureInfo.InvariantCulture);
+            outerText.Text = "Outer angle: " + MathHelper.RadiansToDegrees(outerAngle).ToString("000.000", CultureInfo.InvariantCulture);
 
             Vector2 inner = center + segment_length * new Vector2(MathF.Cos(innerAngle), MathF.Sin(innerAngle));
             Vector2 outer = inner + segment_length * new Vector2(MathF.Cos(outerAngle), MathF.Sin(outerAngle));
