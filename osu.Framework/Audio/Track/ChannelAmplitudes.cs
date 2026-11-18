@@ -48,7 +48,7 @@ namespace osu.Framework.Audio.Track
         {
             LeftChannel = leftChannel;
             RightChannel = rightChannel;
-            FrequencyAmplitudes = amplitudes ?? empty_array;
+            FrequencyAmplitudes = new ReadOnlyMemory<float>(amplitudes ?? empty_array, 0, AMPLITUDES_SIZE);
         }
 
         public static ChannelAmplitudes Empty { get; } = new ChannelAmplitudes(0);
