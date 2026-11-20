@@ -70,6 +70,51 @@ namespace osu.Framework.Tests.Text
         }
 
         [Test]
+        public void StructCtor()
+        {
+            var usage = new FontUsage();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(usage.Family, Is.Null);
+                Assert.That(usage.FontName, Is.Null);
+                Assert.That(usage.Weight, Is.Null);
+                Assert.That(usage.Italics, Is.False);
+                Assert.That(usage.FontNameNoFamily, Is.Null);
+            });
+        }
+
+        [Test]
+        public void Default()
+        {
+            var usage = FontUsage.Default; // equivalent to `new FontUsage(null)` which IS NOT equivalent to `new FontUsage()`
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(usage.Family, Is.Null);
+                Assert.That(usage.FontName, Is.Empty);
+                Assert.That(usage.Weight, Is.Null);
+                Assert.That(usage.Italics, Is.False);
+                Assert.That(usage.FontNameNoFamily, Is.Empty);
+            });
+        }
+
+        [Test]
+        public void EmptyFamilyWithWeightAndItalics()
+        {
+            var usage = new FontUsage(weight: "Thin", italics: true);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(usage.Family, Is.Null);
+                Assert.That(usage.FontName, Is.EqualTo("-ThinItalic"));
+                Assert.That(usage.Weight, Is.EqualTo("Thin"));
+                Assert.That(usage.Italics, Is.True);
+                Assert.That(usage.FontNameNoFamily, Is.EqualTo("-ThinItalic"));
+            });
+        }
+
+        [Test]
         public void FontFamilyEndsWithHyphen()
         {
             var usage = new FontUsage("Hyphens-");
