@@ -68,5 +68,35 @@ namespace osu.Framework.Tests.Text
                 Assert.That(usage.FontNameNoFamily, Is.EqualTo("-SemiBoldItalic"));
             });
         }
+
+        [Test]
+        public void FontFamilyEndsWithHyphen()
+        {
+            var usage = new FontUsage("Hyphens-");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(usage.Family, Is.EqualTo("Hyphens-"));
+                Assert.That(usage.FontName, Is.EqualTo("Hyphens-"));
+                Assert.That(usage.Weight, Is.Null);
+                Assert.That(usage.Italics, Is.False);
+                Assert.That(usage.FontNameNoFamily, Is.EqualTo(string.Empty));
+            });
+        }
+
+        [Test]
+        public void FontFamilyEndsWithHyphen_AlsoWithWeightAndItalics()
+        {
+            var usage = new FontUsage("Hyphens-", italics: true, weight: "SemiBold");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(usage.Family, Is.EqualTo("Hyphens-"));
+                Assert.That(usage.FontName, Is.EqualTo("Hyphens--SemiBoldItalic"));
+                Assert.That(usage.Weight, Is.EqualTo("SemiBold"));
+                Assert.That(usage.Italics, Is.True);
+                Assert.That(usage.FontNameNoFamily, Is.EqualTo("-SemiBoldItalic"));
+            });
+        }
     }
 }
