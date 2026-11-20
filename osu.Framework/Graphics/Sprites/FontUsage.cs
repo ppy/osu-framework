@@ -88,15 +88,16 @@ namespace osu.Framework.Graphics.Sprites
             Italics = italics;
             FixedWidth = fixedWidth;
 
-            FontName = Family + "-";
+            FontName = Family ?? string.Empty;
+
+            if (!string.IsNullOrEmpty(weight) || italics)
+                FontName += "-";
 
             if (!string.IsNullOrEmpty(weight))
                 FontName += weight;
 
             if (italics)
                 FontName += "Italic";
-
-            FontName = FontName.TrimEnd('-');
 
             FontNameNoFamily = string.IsNullOrEmpty(Family) ? FontName : FontName.Substring(Family.Length);
         }
