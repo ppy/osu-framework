@@ -1,13 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Runtime.InteropServices;
 using AVFoundation;
 using Foundation;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
+using osu.Framework.Extensions.ObjectExtensions;
 using SDL;
 using UIKit;
 using static SDL.SDL3;
@@ -19,8 +19,6 @@ namespace osu.Framework.iOS
     /// </summary>
     public abstract class GameApplicationDelegate : UIResponder, IUIApplicationDelegate, IUISceneDelegate
     {
-        internal event Action<string>? DragDrop;
-
         private const string output_volume = "outputVolume";
 
         private static readonly OutputVolumeObserver output_volume_observer = new OutputVolumeObserver();
@@ -49,6 +47,14 @@ namespace osu.Framework.iOS
             // This method should never block. Luckily for us, `Host.Run` doesn't block for iOS hosts.
             Host = new IOSGameHost();
             Host.Run(CreateGame());
+            if (connectionOptions.UrlContexts.IsNotNull())
+                OpenUrlContexts(scene, connectionOptions.UrlContexts);
+        }
+
+        public void OpenUrlContexts(UIScene scene, NSSet<UIOpenUrlContext> urlContexts)
+        {
+            foreach (var context in urlContexts)
+                Host.Window.TriggerDragDrop(context.Url.Path!);
         }
 
         public virtual bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options)
@@ -56,7 +62,7 @@ namespace osu.Framework.iOS
             // copied verbatim from SDL: https://github.com/libsdl-org/SDL/blob/d252a8fe126b998bd1b0f4e4cf52312cd11de378/src/video/uikit/SDL_uikitappdelegate.m#L508-L535
             // the hope is that the SDL app delegate class does not have such handling exist there, but Apple does not provide a corresponding notification to make that possible.
             NSUrl? fileUrl = url.FilePathUrl;
-            DragDrop?.Invoke(fileUrl != null ? fileUrl.Path! : url.AbsoluteString!);
+            Host.Window.TriggerDragDrop(fileUrl != null ? fileUrl.Path! : url.AbsoluteString!);
             return true;
         }
 
