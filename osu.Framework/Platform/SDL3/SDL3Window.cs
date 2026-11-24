@@ -244,6 +244,7 @@ namespace osu.Framework.Platform.SDL3
             graphicsSurface.Initialise();
 
             initialiseWindowingAfterCreation();
+            SDL3Extensions.UpdateKeymap();
             Exists = true;
         }
 

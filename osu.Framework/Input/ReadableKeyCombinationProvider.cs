@@ -68,6 +68,8 @@ namespace osu.Framework.Input
 
         protected virtual string GetReadableKey(InputKey key)
         {
+            if (key >= InputKey.FirstNonStandardKeyboardKey)
+                return key.ToString();
             if (key >= InputKey.FirstTabletAuxiliaryButton)
                 return $"Tablet Aux {key - InputKey.FirstTabletAuxiliaryButton + 1}";
             if (key >= InputKey.FirstTabletPenButton)
