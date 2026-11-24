@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -100,17 +101,17 @@ namespace osu.Framework.Tests.Visual.Graphics
 
             info.AppendLine("write occupancy:");
             for (int i = 0; i < writes.Length; i++)
-                info.AppendLine($"{i}:   {writes[i] / totalWrites,-10:P}({writes[i]} / {totalWrites})");
+                info.AppendLine(CultureInfo.InvariantCulture, $"{i}:   {writes[i] / totalWrites,-10:P}({writes[i]} / {totalWrites})");
 
             info.AppendLine();
 
             info.AppendLine("read occupancy:");
             for (int i = 0; i < reads.Length; i++)
-                info.AppendLine($"{i}:   {reads[i] / totalReads,-10:P}({reads[i]} / {totalReads})");
+                info.AppendLine(CultureInfo.InvariantCulture, $"{i}:   {reads[i] / totalReads,-10:P}({reads[i]} / {totalReads})");
 
             info.AppendLine();
 
-            info.AppendLine($"Speed: {stopwatch.Elapsed.TotalMicroseconds / totalReads:0.00}us/read");
+            info.AppendLine(CultureInfo.InvariantCulture, $"Speed: {stopwatch.Elapsed.TotalMicroseconds / totalReads:0.00}us/read");
 
             text.Text = info.ToString();
         }

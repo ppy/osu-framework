@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using osu.Framework.Configuration.Tracking;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Video;
@@ -65,7 +66,7 @@ namespace osu.Framework.Configuration
             new TrackedSetting<Size>(FrameworkSetting.WindowedSize, v => new SettingDescription(v, "Screen resolution", $"{v.Width}x{v.Height}")),
             new TrackedSetting<WindowMode>(FrameworkSetting.WindowMode, v => new SettingDescription(v, "Screen Mode", v.ToString(), "Alt+Enter")),
 #pragma warning disable 618
-            new TrackedSetting<double>(FrameworkSetting.CursorSensitivity, v => new SettingDescription(v, "Cursor Sensitivity", v.ToString(@"0.##x"), "Ctrl+Alt+R to reset")),
+            new TrackedSetting<double>(FrameworkSetting.CursorSensitivity, v => new SettingDescription(v, "Cursor Sensitivity", v.ToString(@"0.##x", CultureInfo.CurrentCulture), "Ctrl+Alt+R to reset")),
             new TrackedSetting<string>(FrameworkSetting.IgnoredInputHandlers, v =>
             {
                 bool raw = !v.Contains("Raw");

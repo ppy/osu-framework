@@ -5,6 +5,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -156,8 +157,8 @@ namespace osu.Framework.Statistics
 
             logMessage.AppendLine($@"| Slow frame on thread ""{threadName}""");
             logMessage.AppendLine(@"|");
-            logMessage.AppendLine($@"| * Thread time  : {clock.CurrentTime:#0,#}ms");
-            logMessage.AppendLine($@"| * Frame length : {elapsedFrameTime:#0,#}ms (allowable: {currentThreshold:#0,#}ms)");
+            logMessage.AppendLine(CultureInfo.InvariantCulture, $@"| * Thread time  : {clock.CurrentTime:#0,#}ms");
+            logMessage.AppendLine(CultureInfo.InvariantCulture, $@"| * Frame length : {elapsedFrameTime:#0,#}ms (allowable: {currentThreshold:#0,#}ms)");
 
             logMessage.AppendLine(@"|");
 

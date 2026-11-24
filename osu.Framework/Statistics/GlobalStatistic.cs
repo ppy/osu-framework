@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Globalization;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Statistics
@@ -30,16 +31,16 @@ namespace osu.Framework.Statistics
                         return t.ReadableName();
 
                     case double d:
-                        return d.ToString("#,0.##");
+                        return d.ToString("#,0.##", CultureInfo.InvariantCulture);
 
                     case int i:
-                        return i.ToString("#,0");
+                        return i.ToString("#,0", CultureInfo.InvariantCulture);
 
                     case long l:
-                        return l.ToString("#,0");
+                        return l.ToString("#,0", CultureInfo.InvariantCulture);
 
                     case ulong l:
-                        return l.ToString("#,0");
+                        return l.ToString("#,0", CultureInfo.InvariantCulture);
 
                     default:
                         return Value?.ToString() ?? string.Empty;
