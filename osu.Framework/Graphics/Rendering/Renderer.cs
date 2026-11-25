@@ -79,6 +79,7 @@ namespace osu.Framework.Graphics.Rendering
         protected ClearInfo CurrentClearInfo { get; private set; }
         public BlendingParameters CurrentBlendingParameters { get; private set; }
         protected BlendingMask CurrentBlendingMask { get; private set; }
+        public bool CurrentTextureHasPremultipliedAlpha { get; private set; }
 
         /// <summary>
         /// Whether scissor is currently enabled.
@@ -391,13 +392,14 @@ namespace osu.Framework.Graphics.Rendering
 
         public void SetBlend(BlendingParameters blendingParameters)
         {
-            if (CurrentBlendingParameters == blendingParameters)
+            BlendingParameters oldBlendingParameters = CurrentBlendingParameters;
+            CurrentBlendingParameters = blendingParameters;
+
+            if (CurrentBlendingParameters.EqualsExceptForAdditive(oldBlendingParameters))
                 return;
 
             FlushCurrentBatch(FlushBatchSource.SetBlend);
             SetBlendImplementation(blendingParameters);
-
-            CurrentBlendingParameters = blendingParameters;
         }
 
         public void SetBlendMask(BlendingMask blendingMask)
@@ -422,6 +424,16 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="blendingMask">The blending mask.</param>
         protected abstract void SetBlendMaskImplementation(BlendingMask blendingMask);
+
+        public void SetTextureHasPremultipliedAlpha(bool hasPremultipliedAlpha)
+        {
+            if (CurrentTextureHasPremultipliedAlpha == hasPremultipliedAlpha)
+                return;
+
+            FlushCurrentBatch(FlushBatchSource.SetTextureHasPremultipliedAlpha);
+            CurrentTextureHasPremultipliedAlpha = hasPremultipliedAlpha;
+            globalUniformsChanged = true;
+        }
 
         #endregion
 
@@ -973,6 +985,7 @@ namespace osu.Framework.Graphics.Rendering
                     IsMasking = IsMaskingActive,
                     CornerRadius = currentMaskingInfo.CornerRadius,
                     CornerExponent = currentMaskingInfo.CornerExponent,
+                    TextureHasPremultipliedAlpha = CurrentTextureHasPremultipliedAlpha,
                     MaskingRect = new Vector4(
                         currentMaskingInfo.MaskingRect.Left,
                         currentMaskingInfo.MaskingRect.Top,
@@ -982,24 +995,24 @@ namespace osu.Framework.Graphics.Rendering
                     BorderColour = currentMaskingInfo.BorderThickness > 0
                         ? new Matrix4(
                             // TopLeft
-                            currentMaskingInfo.BorderColour.TopLeft.SRGB.R,
-                            currentMaskingInfo.BorderColour.TopLeft.SRGB.G,
-                            currentMaskingInfo.BorderColour.TopLeft.SRGB.B,
+                            currentMaskingInfo.BorderColour.TopLeft.SRGB.R * currentMaskingInfo.BorderColour.TopLeft.SRGB.A,
+                            currentMaskingInfo.BorderColour.TopLeft.SRGB.G * currentMaskingInfo.BorderColour.TopLeft.SRGB.A,
+                            currentMaskingInfo.BorderColour.TopLeft.SRGB.B * currentMaskingInfo.BorderColour.TopLeft.SRGB.A,
                             currentMaskingInfo.BorderColour.TopLeft.SRGB.A,
                             // BottomLeft
-                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.R,
-                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.G,
-                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.B,
+                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.R * currentMaskingInfo.BorderColour.BottomLeft.SRGB.A,
+                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.G * currentMaskingInfo.BorderColour.BottomLeft.SRGB.A,
+                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.B * currentMaskingInfo.BorderColour.BottomLeft.SRGB.A,
                             currentMaskingInfo.BorderColour.BottomLeft.SRGB.A,
                             // TopRight
-                            currentMaskingInfo.BorderColour.TopRight.SRGB.R,
-                            currentMaskingInfo.BorderColour.TopRight.SRGB.G,
-                            currentMaskingInfo.BorderColour.TopRight.SRGB.B,
+                            currentMaskingInfo.BorderColour.TopRight.SRGB.R * currentMaskingInfo.BorderColour.TopRight.SRGB.A,
+                            currentMaskingInfo.BorderColour.TopRight.SRGB.G * currentMaskingInfo.BorderColour.TopRight.SRGB.A,
+                            currentMaskingInfo.BorderColour.TopRight.SRGB.B * currentMaskingInfo.BorderColour.TopRight.SRGB.A,
                             currentMaskingInfo.BorderColour.TopRight.SRGB.A,
                             // BottomRight
-                            currentMaskingInfo.BorderColour.BottomRight.SRGB.R,
-                            currentMaskingInfo.BorderColour.BottomRight.SRGB.G,
-                            currentMaskingInfo.BorderColour.BottomRight.SRGB.B,
+                            currentMaskingInfo.BorderColour.BottomRight.SRGB.R * currentMaskingInfo.BorderColour.BottomRight.SRGB.A,
+                            currentMaskingInfo.BorderColour.BottomRight.SRGB.G * currentMaskingInfo.BorderColour.BottomRight.SRGB.A,
+                            currentMaskingInfo.BorderColour.BottomRight.SRGB.B * currentMaskingInfo.BorderColour.BottomRight.SRGB.A,
                             currentMaskingInfo.BorderColour.BottomRight.SRGB.A)
                         : globalUniformBuffer.Data.BorderColour,
                     MaskingBlendRange = currentMaskingInfo.BlendRange,

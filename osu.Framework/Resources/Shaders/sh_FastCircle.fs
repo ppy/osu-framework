@@ -20,7 +20,7 @@ void main(void)
 
     highp float alpha = v_BlendRange.x == 0.0 ? float(dst < radius) : (clamp(radius - dst, 0.0, v_BlendRange.x) / v_BlendRange.x);
 
-    o_Colour = getRoundedColor(vec4(vec3(1.0), alpha), vec2(0.0));
+    o_Colour = getRoundedColor(vec4(alpha), vec2(0.0));
 }
 
 #endif
