@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using osu.Framework.Extensions.EnumExtensions;
@@ -1062,7 +1063,11 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_PenDeviceType.SDL_PEN_DEVICE_TYPE_INDIRECT:
                     return TabletPenDeviceType.Indirect;
 
+                case SDL_PenDeviceType.SDL_PEN_DEVICE_TYPE_UNKNOWN:
+                    return TabletPenDeviceType.Unknown;
+
                 default:
+                    Debug.Fail($"Invalid SDL pen device type: {type}");
                     return TabletPenDeviceType.Unknown;
             }
         }
@@ -1198,14 +1203,6 @@ namespace osu.Framework.Platform.SDL3
         {
             if (returnValue == null)
                 logError(expression);
-
-            return returnValue;
-        }
-
-        public static SDL_PenDeviceType ThrowIfFailed(this SDL_PenDeviceType returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
-        {
-            if (returnValue == SDL_PenDeviceType.SDL_PEN_DEVICE_TYPE_INVALID)
-                throw new SDL3Exception(expression);
 
             return returnValue;
         }

@@ -10,6 +10,8 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public partial class CircularContainer : Container
     {
+        protected override bool CanBeFlattened => false;
+
         internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             // this shouldn't have to be done here, but it's the only place it works correctly.

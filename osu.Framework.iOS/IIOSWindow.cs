@@ -20,5 +20,7 @@ namespace osu.Framework.iOS
         /// The <see cref="UIViewController"/> presenting this window's content.
         /// </summary>
         UIViewController ViewController { get; }
+
+        internal void TriggerDragDrop(string filename);
     }
 }

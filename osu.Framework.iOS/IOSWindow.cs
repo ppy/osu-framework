@@ -44,10 +44,9 @@ namespace osu.Framework.iOS
 
             UIWindow = Runtime.GetNSObject<UIWindow>(WindowHandle)!;
             updateSafeArea();
-
-            var appDelegate = (GameApplicationDelegate)UIApplication.SharedApplication.Delegate;
-            appDelegate.DragDrop += TriggerDragDrop;
         }
+
+        public new void TriggerDragDrop(string filename) => base.TriggerDragDrop(filename);
 
         protected override unsafe void RunMainLoop()
         {

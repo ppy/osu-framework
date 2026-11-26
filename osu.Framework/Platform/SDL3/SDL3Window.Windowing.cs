@@ -25,7 +25,7 @@ namespace osu.Framework.Platform.SDL3
             config.BindWith(FrameworkSetting.MinimiseOnFocusLossInFullscreen, minimiseOnFocusLoss);
             minimiseOnFocusLoss.BindValueChanged(e =>
             {
-                ScheduleCommand(() => SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, e.NewValue ? "1"u8 : "0"u8).LogErrorIfFailed());
+                ScheduleCommand(() => SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, e.NewValue ? "auto"u8 : "0"u8).LogErrorIfFailed());
             }, true);
 
             fetchDisplays();
@@ -230,6 +230,21 @@ namespace osu.Framework.Platform.SDL3
         private readonly BindableBool isActive = new BindableBool();
 
         public IBindable<bool> IsActive => isActive;
+
+        /// <summary>
+        /// Whether the mouse cursor is inside the window.
+        /// </summary>
+        private bool mouseInWindow;
+
+        /// <summary>
+        /// The number of pens in proximity over the window.
+        /// </summary>
+        private int pensInWindow;
+
+        private void updateCursorInWindow()
+        {
+            cursorInWindow.Value = mouseInWindow || pensInWindow > 0;
+        }
 
         private readonly BindableBool cursorInWindow = new BindableBool();
 
@@ -525,13 +540,13 @@ namespace osu.Framework.Platform.SDL3
                     break;
 
                 case SDL_EventType.SDL_EVENT_WINDOW_MOUSE_ENTER:
-                    cursorInWindow.Value = true;
-                    MouseEntered?.Invoke();
+                    mouseInWindow = true;
+                    updateCursorInWindow();
                     break;
 
                 case SDL_EventType.SDL_EVENT_WINDOW_MOUSE_LEAVE:
-                    cursorInWindow.Value = false;
-                    MouseLeft?.Invoke();
+                    mouseInWindow = false;
+                    updateCursorInWindow();
                     break;
 
                 case SDL_EventType.SDL_EVENT_WINDOW_RESTORED:

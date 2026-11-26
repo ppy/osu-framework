@@ -11,9 +11,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.PixelFormats;
 using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL3
@@ -48,7 +50,7 @@ namespace osu.Framework.Platform.SDL3
         {
             foreach (string mimeType in supportedImageMimeTypes)
             {
-                if (tryGetData(mimeType, Image.Load<TPixel>, out var image))
+                if (tryGetData<TPixel>(mimeType, out var image))
                 {
                     Logger.Log($"Decoded {mimeType} from clipboard.");
                     return image;
@@ -77,13 +79,7 @@ namespace osu.Framework.Platform.SDL3
             return trySetData(imageFormat.DefaultMimeType, () => memory);
         }
 
-        /// <summary>
-        /// Decodes data from a native memory span. Return null or throw an exception if the data couldn't be decoded.
-        /// </summary>
-        /// <typeparam name="T">Type of decoded data.</typeparam>
-        private delegate T? SpanDecoder<out T>(ReadOnlySpan<byte> span);
-
-        private static unsafe bool tryGetData<T>(string mimeType, SpanDecoder<T> decoder, out T? data)
+        private static unsafe bool tryGetData<TPixel>(string mimeType, out Image<TPixel>? data) where TPixel : unmanaged, IPixel<TPixel>
         {
             if (!SDL_HasClipboardData(mimeType))
             {
@@ -97,20 +93,20 @@ namespace osu.Framework.Platform.SDL3
             if (pointer == IntPtr.Zero)
             {
                 Logger.Log($"Failed to get SDL clipboard data for {mimeType}. SDL error: {SDL_GetError()}");
-                data = default;
+                data = null;
                 return false;
             }
 
             try
             {
                 var nativeMemory = new ReadOnlySpan<byte>((void*)pointer, (int)nativeSize);
-                data = decoder(nativeMemory);
-                return data != null;
+                data = Image.Load<TPixel>(TextureUpload.DECODER_OPTIONS, nativeMemory);
+                return true;
             }
             catch (Exception e)
             {
                 Logger.Error(e, $"Failed to decode clipboard data for {mimeType}.");
-                data = default;
+                data = null;
                 return false;
             }
             finally

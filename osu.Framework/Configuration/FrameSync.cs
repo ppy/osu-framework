@@ -12,6 +12,9 @@ namespace osu.Framework.Configuration
     {
         VSync,
 
+        [Description("VSync (VRR low latency)")]
+        VSyncVRR,
+
         [Description("2x refresh rate")]
         Limit2x,
 
