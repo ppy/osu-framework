@@ -89,6 +89,75 @@ namespace osu.Framework.Tests.Visual.Containers
             AddUntilStep("container still autosized", () => container.Size == new Vector2(100));
         }
 
+        [Test]
+        public void TestFlattening()
+        {
+            DrawNodeInspectingContainer container = null;
+
+            AddStep("create container", () => Child = container = new DrawNodeInspectingContainer
+            {
+                Size = new Vector2(200),
+                Child = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Child = new Box { RelativeSizeAxes = Axes.Both }
+                }
+            });
+
+            AddUntilStep("draw nodes generated", () => container.ChildWasFlattened.HasValue);
+            AddAssert("child flattened", () => container.ChildWasFlattened == true);
+        }
+
+        [Test]
+        public void TestCustomDrawNodeNotFlattened()
+        {
+            DrawNodeInspectingContainer container = null;
+
+            AddStep("create container", () => Child = container = new DrawNodeInspectingContainer
+            {
+                Size = new Vector2(200),
+                Child = new CustomDrawNodeContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Child = new Box { RelativeSizeAxes = Axes.Both }
+                }
+            });
+
+            AddUntilStep("draw nodes generated", () => container.ChildWasFlattened.HasValue);
+            AddAssert("child not flattened", () => container.ChildWasFlattened == false);
+        }
+
+        private partial class DrawNodeInspectingContainer : Container
+        {
+            public bool? ChildWasFlattened { get; private set; }
+
+            protected override bool CanBeFlattened => false;
+
+            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
+            {
+                var node = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+
+                var children = (node as ICompositeDrawNode)?.Children;
+
+                ChildWasFlattened = children?.Count == 1 ? children[0] is not ICompositeDrawNode : null;
+
+                return node;
+            }
+        }
+
+        private partial class CustomDrawNodeContainer : Container
+        {
+            protected override DrawNode CreateDrawNode() => new CustomCompositeDrawNode(this);
+
+            private class CustomCompositeDrawNode : CompositeDrawableDrawNode
+            {
+                public CustomCompositeDrawNode(CompositeDrawable source)
+                    : base(source)
+                {
+                }
+            }
+        }
+
         private partial class SortableComposite : CompositeDrawable
         {
             public SortableComposite()

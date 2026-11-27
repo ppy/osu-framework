@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +20,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public partial class MarkdownTable : CompositeDrawable
     {
-        private GridContainer tableContainer;
+        private GridContainer tableContainer = null!;
 
         private readonly Table table;
 
@@ -54,7 +52,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 for (int c = 0; c < tableRow.Count; c++)
                 {
                     var columnDimensions = table.ColumnDefinitions[c];
-                    row.Add(CreateTableCell((TableCell)tableRow[c], columnDimensions, rows.Count == 0));
+                    var tableCells = CreateTableCell((TableCell)tableRow[c], columnDimensions, rows.Count == 0);
+                    tableCells.InvalidateParentTable += invalidateDefinitionCache;
+                    row.Add(tableCells);
                 }
 
                 rows.Add(row);
@@ -95,32 +95,55 @@ namespace osu.Framework.Graphics.Containers.Markdown
             if (table.Count == 0)
                 return;
 
-            Span<float> columnWidths = stackalloc float[tableContainer.Content[0].Count];
+            int columnCount = tableContainer.Content[0].Count;
+            Span<float> maxColumnWidths = stackalloc float[columnCount];
+            Span<float> minColumnWidths = stackalloc float[columnCount];
 
-            // Compute the maximum width of each column
+            // Compute the maximum and minimum width of each column
             for (int r = 0; r < tableContainer.Content.Count; r++)
             {
                 for (int c = 0; c < tableContainer.Content[r].Count; c++)
-                    columnWidths[c] = Math.Max(columnWidths[c], ((MarkdownTableCell)tableContainer.Content[r][c]).ContentWidth);
+                {
+                    MarkdownTableCell tableCell = (MarkdownTableCell)tableContainer.Content[r][c];
+                    maxColumnWidths[c] = Math.Max(maxColumnWidths[c], tableCell.ContentWidth);
+                    minColumnWidths[c] = Math.Max(minColumnWidths[c], tableCell.MinimumContentWidth);
+                }
             }
 
             float totalWidth = 0;
-            for (int i = 0; i < columnWidths.Length; i++)
-                totalWidth += columnWidths[i];
+            for (int i = 0; i < columnCount; i++)
+                totalWidth += maxColumnWidths[i];
 
-            var columnDimensions = new Dimension[columnWidths.Length];
+            var columnDimensions = new Dimension[columnCount];
 
             if (totalWidth < DrawWidth)
             {
                 // The columns will fit within the table, use absolute column widths
-                for (int i = 0; i < columnWidths.Length; i++)
-                    columnDimensions[i] = new Dimension(GridSizeMode.Absolute, columnWidths[i]);
+                for (int i = 0; i < columnCount; i++)
+                    columnDimensions[i] = new Dimension(GridSizeMode.Absolute, maxColumnWidths[i]);
             }
             else
             {
+                Span<float> targetColumnWidths = stackalloc float[columnCount];
+                float totalTargetWidth = 0;
+
+                for (int i = 0; i < columnCount; i++)
+                {
+                    targetColumnWidths[i] = minColumnWidths[i];
+                    totalTargetWidth += targetColumnWidths[i];
+                }
+
+                if (totalTargetWidth < DrawWidth)
+                {
+                    float remainingWidth = DrawWidth - totalTargetWidth;
+
+                    for (int i = 0; i < columnCount; i++)
+                        targetColumnWidths[i] += (maxColumnWidths[i] / totalWidth) * remainingWidth;
+                }
+
                 // The columns will overflow the table, must convert them to a relative size
-                for (int i = 0; i < columnWidths.Length; i++)
-                    columnDimensions[i] = new Dimension(GridSizeMode.Relative, columnWidths[i] / totalWidth);
+                for (int i = 0; i < columnCount; i++)
+                    columnDimensions[i] = new Dimension(GridSizeMode.Relative, targetColumnWidths[i] / DrawWidth);
             }
 
             tableContainer.ColumnDimensions = columnDimensions;
@@ -136,6 +159,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 rowDefinitions[r] = new Dimension(GridSizeMode.Absolute, tableContainer.Content[r].Max(c => ((MarkdownTableCell)c).ContentHeight));
 
             tableContainer.RowDimensions = rowDefinitions;
+        }
+
+        private void invalidateDefinitionCache()
+        {
+            columnDefinitionCache.Invalidate();
+            rowDefinitionCache.Invalidate();
         }
 
         protected virtual MarkdownTableCell CreateTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading) => new MarkdownTableCell(cell, definition);

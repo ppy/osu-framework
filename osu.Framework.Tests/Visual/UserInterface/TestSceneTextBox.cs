@@ -1163,6 +1163,87 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("first textbox focused", () => textBoxes[0].HasFocus);
         }
 
+        [Test]
+        public void TestShiftClickSelect()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "this is very long text in a box",
+                });
+            });
+
+            AddStep("focus textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("press Shift", () => InputManager.PressKey(Key.ShiftLeft));
+
+            AddStep("select text to the left", () =>
+            {
+                InputManager.MoveMouseTo(textBox.ToScreenSpace(textBox.LayoutRectangle.Centre - new Vector2(80f, 0f)));
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("verify selected text", () => textBox.SelectedText == "very lon");
+
+            AddStep("extend selection to the left", () =>
+            {
+                InputManager.MoveMouseTo(textBox.ToScreenSpace(textBox.LayoutRectangle.Centre - new Vector2(145f, 0f)));
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("verify selected text", () => textBox.SelectedText == "this is very lon");
+
+            AddStep("turn around", () =>
+            {
+                InputManager.MoveMouseTo(textBox.ToScreenSpace(textBox.LayoutRectangle.Centre + new Vector2(80f, 0f)));
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("verify selected text", () => textBox.SelectedText == "g text in ");
+
+            AddStep("extend selection to the right", () =>
+            {
+                InputManager.MoveMouseTo(textBox.ToScreenSpace(textBox.LayoutRectangle.Centre + new Vector2(145f, 0f)));
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("verify selected text", () => textBox.SelectedText == "g text in a box");
+
+            AddStep("shrink selection to the left", () =>
+            {
+                InputManager.MoveMouseTo(textBox.ToScreenSpace(textBox.LayoutRectangle.Centre + new Vector2(80f, 0f)));
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("verify selected text", () => textBox.SelectedText == "g text in ");
+
+            AddStep("turn around again", () =>
+            {
+                InputManager.MoveMouseTo(textBox.ToScreenSpace(textBox.LayoutRectangle.Centre - new Vector2(145f, 0f)));
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("verify selected text", () => textBox.SelectedText == "this is very lon");
+
+            AddStep("shrink selection to the right", () =>
+            {
+                InputManager.MoveMouseTo(textBox.ToScreenSpace(textBox.LayoutRectangle.Centre - new Vector2(80f, 0f)));
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("verify selected text", () => textBox.SelectedText == "very lon");
+
+            AddStep("click at the center", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("verify selected text", () => textBox.SelectedText.Length == 0);
+
+            AddStep("release Shift", () => InputManager.ReleaseKey(Key.ShiftLeft));
+        }
+
         private void prependString(InsertableTextBox textBox, string text)
         {
             InputManager.Keys(PlatformAction.MoveBackwardLine);

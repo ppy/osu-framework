@@ -1,13 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Runtime.InteropServices;
 using AVFoundation;
 using Foundation;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
+using osu.Framework.Extensions.ObjectExtensions;
 using SDL;
 using UIKit;
 using static SDL.SDL3;
@@ -17,17 +17,20 @@ namespace osu.Framework.iOS
     /// <summary>
     /// Base <see cref="UIApplicationDelegate"/> implementation for osu!framework applications.
     /// </summary>
-    public abstract class GameApplicationDelegate : UIResponder, IUIApplicationDelegate
+    public abstract class GameApplicationDelegate : UIResponder, IUIApplicationDelegate, IUISceneDelegate
     {
-        internal event Action<string>? DragDrop;
-
         private const string output_volume = "outputVolume";
 
         private static readonly OutputVolumeObserver output_volume_observer = new OutputVolumeObserver();
 
         public IOSGameHost Host { get; private set; } = null!;
 
-        public virtual bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
+        public virtual bool FinishedLaunching(UIApplication application, NSDictionary? launchOptions)
+        {
+            return true;
+        }
+
+        public void WillConnect(UIScene scene, UISceneSession session, UISceneConnectionOptions connectionOptions)
         {
             mapLibraryNames();
 
@@ -41,9 +44,17 @@ namespace osu.Framework.iOS
             audioSession.SetCategory(AVAudioSessionCategory.SoloAmbient);
             audioSession.AddObserver(output_volume_observer, output_volume, NSKeyValueObservingOptions.New, 0);
 
+            // This method should never block. Luckily for us, `Host.Run` doesn't block for iOS hosts.
             Host = new IOSGameHost();
             Host.Run(CreateGame());
-            return true;
+            if (connectionOptions.UrlContexts.IsNotNull())
+                OpenUrlContexts(scene, connectionOptions.UrlContexts);
+        }
+
+        public void OpenUrlContexts(UIScene scene, NSSet<UIOpenUrlContext> urlContexts)
+        {
+            foreach (var context in urlContexts)
+                Host.Window.TriggerDragDrop(context.Url.Path!);
         }
 
         public virtual bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options)
@@ -51,7 +62,7 @@ namespace osu.Framework.iOS
             // copied verbatim from SDL: https://github.com/libsdl-org/SDL/blob/d252a8fe126b998bd1b0f4e4cf52312cd11de378/src/video/uikit/SDL_uikitappdelegate.m#L508-L535
             // the hope is that the SDL app delegate class does not have such handling exist there, but Apple does not provide a corresponding notification to make that possible.
             NSUrl? fileUrl = url.FilePathUrl;
-            DragDrop?.Invoke(fileUrl != null ? fileUrl.Path! : url.AbsoluteString!);
+            Host.Window.TriggerDragDrop(fileUrl != null ? fileUrl.Path! : url.AbsoluteString!);
             return true;
         }
 
@@ -60,10 +71,18 @@ namespace osu.Framework.iOS
             base.BuildMenu(builder);
 
             // Remove useless menus on iPadOS. This makes it almost match macOS, displaying only "Window" and "Help".
-            builder.RemoveMenu(UIMenuIdentifier.File.GetConstant());
-            builder.RemoveMenu(UIMenuIdentifier.Edit.GetConstant());
-            builder.RemoveMenu(UIMenuIdentifier.Format.GetConstant());
-            builder.RemoveMenu(UIMenuIdentifier.View.GetConstant());
+            attemptRemove(UIMenuIdentifier.File.GetConstant());
+            attemptRemove(UIMenuIdentifier.Edit.GetConstant());
+            attemptRemove(UIMenuIdentifier.Format.GetConstant());
+            attemptRemove(UIMenuIdentifier.View.GetConstant());
+
+            void attemptRemove(NSString? name)
+            {
+                if (name == null)
+                    return;
+
+                builder.RemoveMenu(name);
+            }
         }
 
         /// <summary>

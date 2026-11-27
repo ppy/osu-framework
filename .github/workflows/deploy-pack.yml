@@ -147,7 +147,7 @@ jobs:
 
   pack-ios:
     name: Pack (iOS)
-    runs-on: macos-26
+    runs-on: xcode-27
     environment: production
     defaults:
       run:
@@ -165,11 +165,12 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Restore .NET Workloads
-        run: dotnet workload install ios
-
-      - name: Use Xcode 26.6
-        run: sudo xcode-select -switch /Applications/Xcode_26.6.app
+      # The .NET workload (built against/requires a specific Xcode version) and the default Xcode on the GHA runner can get out of sync.
+      # Force a common Xcode version to prevent builds spontaneously failing.
+      - name: Restore .NET workloads
+        run: |
+          sudo xcode-select -s /Applications/Xcode_27.0.app/Contents/Developer
+          dotnet workload install ios --version 10.0.402
 
       - name: Pack (iOS Framework)
         run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
