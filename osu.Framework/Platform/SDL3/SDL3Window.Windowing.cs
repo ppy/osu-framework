@@ -297,8 +297,16 @@ namespace osu.Framework.Platform.SDL3
 
         public event Action<IEnumerable<Display>>? DisplaysChanged;
 
-        // ReSharper disable once UnusedParameter.Local
-        private void handleDisplayEvent(SDL_DisplayEvent evtDisplay) => fetchDisplays();
+        private unsafe void handleDisplayEvent(SDL_DisplayEvent evtDisplay)
+        {
+            fetchDisplays();
+
+            if (evtDisplay.type != SDL_EventType.SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED || evtDisplay.displayID != displayID || SDLWindowHandle == null)
+                return;
+
+            if (tryFetchDisplayMode(SDLWindowHandle, windowState, currentDisplay, out var newMode))
+                currentDisplayMode.Value = newMode;
+        }
 
         /// <summary>
         /// Updates <see cref="Displays"/> with the latest display information reported by SDL.
