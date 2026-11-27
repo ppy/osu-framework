@@ -73,6 +73,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             textFlowContainer.AddText(" (and so are inline styles!)", t => t.Colour = Color4.Yellow);
             textFlowContainer.AddParagraph("There's 2 line breaks\n\ninside this paragraph!", t => t.Colour = Color4.GreenYellow);
             textFlowContainer.AddParagraph("Make\nTextFlowContainer\ngreat\nagain!", t => t.Colour = Color4.Red);
+            textFlowContainer.AddText("\ntext overflowwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", t => t.Colour = Color4.Blue);
 
             paragraphContainer.Add(new TextFlowContainer
             {
@@ -104,6 +105,28 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
                     })
                 },
                 Text = "Test icons [RedBox] interleaved\n[GreenBox] with other [0] text, also [[0]] escaping stuff is possible."
+            });
+
+            paragraphContainer.Add(new CustomText
+            {
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y,
+                Placeholders = new Drawable[]
+                {
+                    new LineBaseBox
+                    {
+                        Colour = Color4.Purple,
+                        LineBaseHeight = 25f,
+                        Size = new Vector2(25, 25)
+                    }.WithEffect(new OutlineEffect
+                    {
+                        Strength = 20f,
+                        PadExtent = true,
+                        BlurSigma = new Vector2(5f),
+                        Colour = Color4.White
+                    })
+                },
+                Text = "Test icons interleaved with wrapping overflowwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww[0]wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
             });
 
             paragraphContainer.Add(new Container
