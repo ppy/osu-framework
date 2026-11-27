@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets the item representations contained by this <see cref="Menu"/>.
         /// </summary>
-        protected internal IReadOnlyList<DrawableMenuItem> Children => itemsFlow.Children;
+        protected internal IEnumerable<DrawableMenuItem> Children => itemsFlow.Children.OrderBy(c => itemsFlow.GetLayoutPosition(c));
 
         protected readonly Direction Direction;
 
@@ -155,9 +155,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets or sets the <see cref="MenuItem"/>s contained within this <see cref="Menu"/>.
         /// </summary>
-        public IReadOnlyList<MenuItem> Items
+        public IEnumerable<MenuItem> Items
         {
-            get => itemsFlow.Select(r => r.Item).ToList();
+            get => Children.Select(r => r.Item);
             set
             {
                 Clear();
