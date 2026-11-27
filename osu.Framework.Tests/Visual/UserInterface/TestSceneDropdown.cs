@@ -12,6 +12,7 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
@@ -21,6 +22,7 @@ using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
 using osuTK;
+using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -29,14 +31,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private const int items_to_add = 10;
 
-        [Test]
-        public void TestBasic()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestToggleOnMouseDown(bool toggleOnMouseDown)
         {
             AddStep("setup dropdowns", () =>
             {
                 TestDropdown[] dropdowns = createDropdowns(2);
+                dropdowns.ForEach(dropdown => dropdown.ToggleOnMouseDown = toggleOnMouseDown);
                 dropdowns[1].AlwaysShowSearchBar = true;
             });
+        }
+
+        [Test]
+        public void TestInsideScrollContainer()
+        {
+            TestDropdown[] dropdowns = [];
+
+            AddStep("setup dropdowns", () =>
+            {
+                dropdowns = createDropdownInScrollableParentScene<TestDropdown>();
+            });
+
+            AddAssert("dropdown in scrollable has ToggleOnMouseDown set to false", () => dropdowns.ElementAt(0).ToggleOnMouseDown == false);
+            AddAssert("dropdown in non-scrollable has ToggleOnMouseDown set to true", () => dropdowns.ElementAt(1).ToggleOnMouseDown);
         }
 
         [Test]
@@ -62,6 +80,64 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("item 2 is visually selected", () => (testDropdown.ChildrenOfType<Dropdown<TestModel?>.DropdownMenu.DrawableDropdownMenuItem>()
                                                                         .SingleOrDefault(i => i.IsSelected)?
                                                                         .Item as DropdownMenuItem<TestModel?>)?.Value?.Identifier == "test 2");
+        }
+
+        [Test]
+        public void TestSelectByUserPressAndRelease()
+        {
+            TestDropdown testDropdown = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                testDropdown = createDropdown();
+                testDropdown.ToggleOnMouseDown = true;
+            });
+
+            toggleDropdownViaPress(() => testDropdown);
+            assertDropdownIsOpen(() => testDropdown);
+
+            AddStep("release on item 2", () =>
+            {
+                InputManager.MoveMouseTo(testDropdown.Menu.Children[2]);
+                InputManager.ReleaseButton(MouseButton.Left);
+            });
+
+            assertDropdownIsClosed(() => testDropdown);
+
+            AddAssert("item 2 is selected", () => testDropdown.Current.Value?.Equals(testDropdown.Items.ElementAt(2)) == true);
+            AddAssert("item 2 is selected item", () => testDropdown.SelectedItem.Value?.Identifier == "test 2");
+            AddAssert("item 2 is visually selected", () => (testDropdown.ChildrenOfType<Dropdown<TestModel?>.DropdownMenu.DrawableDropdownMenuItem>()
+                                                                        .SingleOrDefault(i => i.IsSelected)?
+                                                                        .Item as DropdownMenuItem<TestModel?>)?.Value?.Identifier == "test 2");
+        }
+
+        [Test]
+        public void TestUserPressAndReleaseOutsideMenu()
+        {
+            TestDropdown testDropdown = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                testDropdown = createDropdown();
+                testDropdown.ToggleOnMouseDown = true;
+            });
+
+            toggleDropdownViaPress(() => testDropdown);
+            assertDropdownIsOpen(() => testDropdown);
+
+            AddStep("preselect item 2", () =>
+                InputManager.MoveMouseTo(testDropdown.Menu.Children[2])
+            );
+            AddStep("move outside the menu", () =>
+                InputManager.MoveMouseTo(InputManager.ScreenSpaceDrawQuad.Centre)
+            );
+            AddStep("release mouse buttons", () =>
+                InputManager.ReleaseButton(MouseButton.Left)
+            );
+
+            assertDropdownIsClosed(() => testDropdown);
+
+            AddAssert("item 2 is not selected", () => testDropdown.Current.Value?.Equals(testDropdown.Items.ElementAt(2)) == false);
         }
 
         [Test]
@@ -709,8 +785,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         #endregion
 
-        [Test]
-        public void TestPaddedSearchBar()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestPaddedSearchBar(bool toggleOnMouseDown)
         {
             SearchBarPaddedDropdown dropdown = null!;
 
@@ -718,6 +795,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 Child = dropdown = new SearchBarPaddedDropdown
                 {
+                    ToggleOnMouseDown = toggleOnMouseDown,
                     Position = new Vector2(50f, 50f),
                     Width = 150f,
                     Items = new TestModel("test").Yield(),
@@ -788,6 +866,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Position = new Vector2(50f, 50f),
                     Width = 150,
                     Items = testItems,
+                    ToggleOnMouseDown = false,
                 };
             }
 
@@ -803,10 +882,72 @@ namespace osu.Framework.Tests.Visual.UserInterface
             return dropdowns;
         }
 
+        private TDropdown[] createDropdownInScrollableParentScene<TDropdown>()
+            where TDropdown : TestDropdown, new()
+        {
+            var dropdowns = new TDropdown[2];
+            var testItems = new TestModel[10];
+            for (int itemIndex = 0; itemIndex < items_to_add; itemIndex++)
+                testItems[itemIndex] = "test " + itemIndex;
+
+            for (int i = 0; i < dropdowns.Length; i++)
+            {
+                dropdowns[i] = new TDropdown
+                {
+                    Width = 150f,
+                    Position = new Vector2(50f, 50f),
+                    Items = testItems,
+                };
+            }
+
+            var scrollable = createPanel(Color4.DarkRed, new BasicScrollContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Child = dropdowns[0],
+            });
+
+            var nonScrollable = createPanel(Color4.DarkBlue, dropdowns[1]);
+
+            Child = new FillFlowContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Direction = FillDirection.Horizontal,
+                Children =
+                [
+                    scrollable,
+                    nonScrollable,
+                ]
+            };
+
+            return dropdowns;
+
+            Container createPanel(Color4 colour, Drawable child)
+                => new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Width = 0.5f,
+                    Children =
+                    [
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = colour,
+                        },
+                        child,
+                    ]
+                };
+        }
+
         private void toggleDropdownViaClick(Func<TestDropdown> dropdown, string? dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
         {
             InputManager.MoveMouseTo(dropdown().Header);
             InputManager.Click(MouseButton.Left);
+        });
+
+        private void toggleDropdownViaPress(Func<TestDropdown> dropdown, string? dropdownName = null) => AddStep($"press {dropdownName ?? "dropdown"}", () =>
+        {
+            InputManager.MoveMouseTo(dropdown().Header);
+            InputManager.PressButton(MouseButton.Left);
         });
 
         private void assertDropdownIsOpen(Func<TestDropdown> dropdown) => AddAssert("dropdown is open", () => dropdown().Menu.State == MenuState.Open);
